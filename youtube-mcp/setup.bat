@@ -28,18 +28,12 @@ echo [2/3] Authorizing full read/write access (a browser will open)...
 %PY% "%PROJECT_DIR%\authorize_full_access.py" || goto :authfail
 
 echo.
-echo [3/3] Registering the MCP server with Claude Code CLI...
-claude mcp add youtube --env YOUTUBE_API_DIR=%PROJECT_DIR% -- %PY% "%PROJECT_DIR%\youtube_mcp_server.py"
-if errorlevel 1 (
-  echo.
-  echo Could not run "claude mcp add" automatically.
-  echo If you use the Claude DESKTOP app instead of the CLI, see README.md
-  echo for the JSON config to paste into Settings - Developer - Edit Config.
-  goto :done
-)
+echo [3/3] Registering the MCP server with Claude Desktop...
+%PY% "%PROJECT_DIR%\register_desktop.py" || goto :regfail
 
 echo.
-echo Done. Run "claude mcp list" to confirm "youtube" is connected.
+echo Done. Fully quit Claude Desktop from the system tray (Quit), then reopen it.
+echo The "youtube" tools will be available in your next conversation.
 goto :done
 
 :pyfail
@@ -51,6 +45,12 @@ goto :end
 echo.
 echo ERROR: Authorization step failed. Make sure youtube-oauth-client.json
 echo is present in this folder, then re-run setup.bat.
+goto :end
+
+:regfail
+echo.
+echo ERROR: Could not register with Claude Desktop. See README.md to paste
+echo the config manually into Settings - Developer - Edit Config.
 goto :end
 
 :done

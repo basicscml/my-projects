@@ -57,17 +57,21 @@ project (the one in `C:\YouTubeAPI`). It reuses the credentials from that projec
    A browser opens; approve the access on your Google account. The new token is saved
    back to `youtube-token.json` (the token itself is never printed).
 
-## Connect it to Claude
+## Fastest path: one-shot setup
 
-**Claude Code CLI:**
+From `C:\YouTubeAPI`, double-click **`setup.bat`** (or run it in a terminal). It:
+1. installs dependencies,
+2. authorizes full read/write access (opens a browser once), and
+3. registers the server with **Claude Desktop** (via `register_desktop.py`).
 
-```bat
-claude mcp add youtube --env YOUTUBE_API_DIR=C:\YouTubeAPI -- python C:\YouTubeAPI\youtube_mcp_server.py
-```
+Then fully quit Claude Desktop from the system tray (**Quit**) and reopen it.
 
-Verify with `claude mcp list`.
+---
 
-**Claude Desktop** — `Settings → Developer → Edit Config`:
+### Manual connection (if you prefer)
+
+**Claude Desktop** — run `python register_desktop.py`, or edit the config by hand at
+`%APPDATA%\Claude\claude_desktop_config.json` (`Settings → Developer → Edit Config`):
 
 ```json
 {
