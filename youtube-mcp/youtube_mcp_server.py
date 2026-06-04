@@ -68,11 +68,16 @@ PROJECT_DIR = _resolve_project_dir()
 TOKEN_FILE = PROJECT_DIR / "youtube-token.json"
 CLIENT_FILE = PROJECT_DIR / "youtube-oauth-client.json"
 
-# Read-only scopes only. We never request write scopes from this server.
-READONLY_SCOPES = [
+# Scopes. Read scopes power the read tools; the write scope (force-ssl) powers
+# the metadata/thumbnail write tools. Granting actually happens during OAuth
+# authorization (see authorize_full_access.py); listing a scope here does not
+# expand a token that was not granted it.
+READ_SCOPES = [
     "https://www.googleapis.com/auth/youtube.readonly",
     "https://www.googleapis.com/auth/yt-analytics.readonly",
 ]
+WRITE_SCOPE = "https://www.googleapis.com/auth/youtube.force-ssl"
+ALL_SCOPES = READ_SCOPES + [WRITE_SCOPE]
 
 # Files that must never be read/returned by report tools.
 SECRET_FILENAMES = {"youtube-token.json", "youtube-oauth-client.json"}
@@ -80,7 +85,7 @@ SECRET_FILENAMES = {"youtube-token.json", "youtube-oauth-client.json"}
 # Extensions considered "reports" that are safe to read.
 REPORT_EXTENSIONS = {".txt", ".md", ".csv", ".json", ".html", ".log"}
 
-mcp = FastMCP("youtube-readonly")
+mcp = FastMCP("youtube")
 
 
 # ---------------------------------------------------------------------------
@@ -136,8 +141,22 @@ def _load_credentials() -> Credentials:
     return creds
 
 
-def _youtube_data():
-    return build("youtube", "v3", credentials=_load_credentials(), cache_discovery=False)
+def _require_write_scope(creds: Credentials) -> None:
+    """Raise a clear, actionable error if the token lacks the write scope."""
+    granted = set(creds.scopes or [])
+    if WRITE_SCOPE not in granted:
+        raise PermissionError(
+            "This token does not have YouTube write access. Run "
+            "`python authorize_full_access.py` in the project directory once to "
+            "re-authorize with full (read/write) scopes, then retry."
+        )
+
+
+def _youtube_data(write: bool = False):
+    creds = _load_credentials()
+    if write:
+        _require_write_scope(creds)
+    return build("youtube", "v3", credentials=creds, cache_discovery=False)
 
 
 def _youtube_analytics():
@@ -445,6 +464,116 @@ def recommend_improvements(video_id: str) -> dict:
         },
         "suggestions": suggestions,
         "note": "Advisory only. No metadata was changed.",
+    }
+
+
+# ---------------------------------------------------------------------------
+# Write tools (full access). These modify your channel. Requires the write
+# scope on the token (see authorize_full_access.py). Credentials are never
+# returned or logged.
+# ---------------------------------------------------------------------------
+@mcp.tool()
+def update_video_metadata(
+    video_id: str,
+    title: str | None = None,
+    description: str | None = None,
+    tags: list[str] | None = None,
+    category_id: str | None = None,
+) -> dict:
+    """Update a video's title, description, tags, and/or category.
+
+    Only the fields you pass are changed; omitted fields keep their current
+    values. WRITE operation — modifies your channel.
+
+    Args:
+        video_id: The video to update.
+        title: New title (<=100 chars). Omit to keep current.
+        description: New description (<=5000 chars). Omit to keep current.
+        tags: New list of tags (replaces existing). Omit to keep current.
+        category_id: New category id. Omit to keep current.
+    """
+    if not video_id:
+        return {"error": "Provide a video_id."}
+
+    yt = _youtube_data(write=True)
+
+    # Fetch current snippet so we only change requested fields. categoryId is
+    # required by videos.update, so it must be preserved when not overridden.
+    current = yt.videos().list(part="snippet", id=video_id).execute()
+    items = current.get("items", [])
+    if not items:
+        return {"error": f"No video found for id {video_id}."}
+    snippet = items[0]["snippet"]
+
+    before = {
+        "title": snippet.get("title"),
+        "description_length": len(snippet.get("description", "") or ""),
+        "tag_count": len(snippet.get("tags", []) or []),
+        "category_id": snippet.get("categoryId"),
+    }
+
+    if title is not None:
+        if len(title) > 100:
+            return {"error": "Title exceeds 100 characters."}
+        snippet["title"] = title
+    if description is not None:
+        if len(description) > 5000:
+            return {"error": "Description exceeds 5000 characters."}
+        snippet["description"] = description
+    if tags is not None:
+        snippet["tags"] = tags
+    if category_id is not None:
+        snippet["categoryId"] = category_id
+
+    updated = (
+        yt.videos()
+        .update(part="snippet", body={"id": video_id, "snippet": snippet})
+        .execute()
+    )
+    new_snip = updated.get("snippet", {})
+    return {
+        "video_id": video_id,
+        "updated": True,
+        "before": before,
+        "after": {
+            "title": new_snip.get("title"),
+            "description_length": len(new_snip.get("description", "") or ""),
+            "tag_count": len(new_snip.get("tags", []) or []),
+            "category_id": new_snip.get("categoryId"),
+        },
+    }
+
+
+@mcp.tool()
+def set_video_thumbnail(video_id: str, image_path: str) -> dict:
+    """Upload and set a custom thumbnail for a video.
+
+    Args:
+        video_id: The video to update.
+        image_path: Path to the image file (JPG/PNG, <=2MB, ideally 1280x720).
+
+    WRITE operation — modifies your channel.
+    """
+    from googleapiclient.http import MediaFileUpload
+
+    if not video_id:
+        return {"error": "Provide a video_id."}
+    img = Path(image_path)
+    if not img.exists() or not img.is_file():
+        return {"error": f"Image not found: {image_path}"}
+    if img.suffix.lower() not in {".jpg", ".jpeg", ".png"}:
+        return {"error": "Thumbnail must be a .jpg or .png file."}
+    if img.stat().st_size > 2 * 1024 * 1024:
+        return {"error": "Thumbnail exceeds the 2MB limit."}
+
+    yt = _youtube_data(write=True)
+    media = MediaFileUpload(str(img))
+    resp = yt.thumbnails().set(videoId=video_id, media_body=media).execute()
+    items = resp.get("items", [])
+    return {
+        "video_id": video_id,
+        "thumbnail_set": True,
+        "available_resolutions": list(items[0].keys()) if items else [],
     }
 
 
