@@ -1,0 +1,3 @@
+# Runtime dependency for claude_runner.py (the live Claude call).
+# packet_builder.py and the tests need nothing beyond the standard library.
+anthropic>=0.40.0
