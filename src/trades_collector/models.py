@@ -36,6 +36,31 @@ class Filer:
 
 
 @dataclass
+class FilingIndexEntry:
+    """A single filing listed in a bulk disclosure index.
+
+    The House Clerk publishes a yearly bulk XML index of filings. Each entry
+    is filing-level metadata (who filed, what type, when) plus the identifiers
+    needed to locate the underlying document — it does *not* contain the
+    ticker-level transactions, which live in the linked PTR PDF.
+    """
+
+    filer: Filer
+    filing_type: str  # raw source code, e.g. "P" (Periodic Transaction Report)
+    year: Optional[int]
+    doc_id: str
+    filing_date: Optional[date] = None
+    district: Optional[str] = None  # e.g. "CA11"
+    document_url: Optional[str] = None
+
+    @property
+    def is_ptr(self) -> bool:
+        """Whether this filing is a Periodic Transaction Report (trades)."""
+
+        return self.filing_type.upper() == "P"
+
+
+@dataclass
 class Trade:
     """A single disclosed transaction (Periodic Transaction Report line)."""
 

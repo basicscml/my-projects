@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FinancialDisclosure>
+  <Member>
+    <Prefix>Hon.</Prefix>
+    <Last>Doe</Last>
+    <First>Jane</First>
+    <Suffix></Suffix>
+    <FilingType>P</FilingType>
+    <StateDst>CA11</StateDst>
+    <Year>2024</Year>
+    <FilingDate>3/14/2024</FilingDate>
+    <DocID>20012345</DocID>
+  </Member>
+  <Member>
+    <Prefix>Hon.</Prefix>
+    <Last>Roe</Last>
+    <First>Richard</First>
+    <Suffix>Jr.</Suffix>
+    <FilingType>O</FilingType>
+    <StateDst>TX07</StateDst>
+    <Year>2024</Year>
+    <FilingDate>5/1/2024</FilingDate>
+    <DocID>10098765</DocID>
+  </Member>
+</FinancialDisclosure>
