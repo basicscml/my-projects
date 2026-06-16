@@ -1,0 +1,212 @@
+<!--
+  Properly Structured IUL — promotional banner
+  Drop this whole block into a GoHighLevel "Custom HTML / Code" element.
+  It is fully self-contained (inline <style>, no external files) and responsive.
+
+  TO CUSTOMIZE:
+    • Button link  -> search for  data-cta-link  and change href="#"
+    • Logo image   -> replace the .iul-logo SVG, or swap in <img src="YOUR_LOGO_URL">
+    • Colors       -> edit the CSS variables in :root below
+-->
+<div class="iul-banner-wrap">
+  <style>
+    .iul-banner-wrap{
+      --iul-navy:#0a1b3d;
+      --iul-navy-2:#0d2350;
+      --iul-blue:#1a8cff;
+      --iul-blue-dark:#0a6fe0;
+      --iul-text:#ffffff;
+      --iul-muted:#c7d3e8;
+      --iul-divider:rgba(255,255,255,.14);
+      box-sizing:border-box;
+      width:100%;
+      font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    }
+    .iul-banner-wrap *{box-sizing:border-box;}
+
+    .iul-banner{
+      display:flex;
+      align-items:stretch;
+      gap:0;
+      width:100%;
+      background:linear-gradient(135deg,var(--iul-navy) 0%,var(--iul-navy-2) 100%);
+      border-radius:10px;
+      overflow:hidden;
+      box-shadow:0 8px 30px rgba(0,0,0,.25);
+    }
+
+    .iul-col{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      padding:20px 26px;
+      flex:1 1 0;
+    }
+    .iul-col + .iul-col{border-left:1px solid var(--iul-divider);}
+
+    /* ---- Left column: logo + headline ---- */
+    .iul-logo{
+      flex:0 0 auto;
+      width:56px;height:56px;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .iul-logo svg{width:100%;height:100%;}
+    .iul-headline .iul-kicker{
+      color:var(--iul-blue);
+      font-size:15px;
+      font-weight:700;
+      letter-spacing:.3px;
+      margin:0 0 4px;
+      line-height:1.2;
+    }
+    .iul-headline .iul-sub{
+      color:var(--iul-text);
+      font-size:15px;
+      font-weight:800;
+      letter-spacing:.4px;
+      margin:0;
+      line-height:1.25;
+    }
+
+    /* ---- Middle column: the "same / different" list ---- */
+    .iul-middle{
+      flex-direction:column;
+      align-items:flex-start;
+      gap:2px;
+      justify-content:center;
+    }
+    .iul-middle p{
+      margin:0;
+      color:var(--iul-text);
+      font-size:14px;
+      font-weight:600;
+      line-height:1.5;
+    }
+    .iul-middle .hl{color:var(--iul-blue);font-weight:800;}
+    .iul-middle .iul-punch{
+      margin-top:6px;
+      font-size:13.5px;
+      font-weight:700;
+      color:var(--iul-muted);
+    }
+
+    /* ---- Right column: icon + CTA ---- */
+    .iul-icon{
+      flex:0 0 auto;
+      width:54px;height:54px;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .iul-icon svg{width:100%;height:100%;}
+    .iul-cta-block{display:flex;flex-direction:column;gap:12px;}
+    .iul-cta-text{
+      color:var(--iul-text);
+      font-size:14px;
+      font-weight:700;
+      line-height:1.35;
+      margin:0;
+      max-width:240px;
+    }
+    .iul-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      background:linear-gradient(180deg,var(--iul-blue) 0%,var(--iul-blue-dark) 100%);
+      color:#fff;
+      text-decoration:none;
+      font-size:17px;
+      font-weight:800;
+      letter-spacing:.5px;
+      padding:13px 26px;
+      border-radius:6px;
+      box-shadow:0 4px 14px rgba(26,140,255,.45);
+      transition:transform .15s ease,box-shadow .15s ease,filter .15s ease;
+      white-space:nowrap;
+    }
+    .iul-btn:hover{
+      transform:translateY(-2px);
+      box-shadow:0 7px 20px rgba(26,140,255,.6);
+      filter:brightness(1.05);
+    }
+    .iul-btn .iul-arrow{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:22px;height:22px;border-radius:50%;
+      background:rgba(255,255,255,.18);
+    }
+    .iul-btn .iul-arrow svg{width:12px;height:12px;}
+
+    /* ---- Responsive: stack on tablets/phones ---- */
+    @media (max-width:900px){
+      .iul-banner{flex-direction:column;}
+      .iul-col + .iul-col{border-left:none;border-top:1px solid var(--iul-divider);}
+      .iul-col{justify-content:center;text-align:center;}
+      .iul-middle{align-items:center;}
+      .iul-cta-text{max-width:none;}
+      .iul-cta-block{align-items:center;}
+    }
+    @media (max-width:480px){
+      .iul-col{flex-direction:column;padding:18px;}
+      .iul-headline,.iul-cta-block{text-align:center;}
+      .iul-btn{font-size:16px;padding:12px 22px;}
+    }
+  </style>
+
+  <div class="iul-banner">
+
+    <!-- LEFT -->
+    <div class="iul-col iul-left">
+      <div class="iul-logo" aria-hidden="true">
+        <!-- Simple chart-in-circle mark; replace with <img src="YOUR_LOGO_URL" ...> if you have one -->
+        <svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="28" cy="28" r="26" fill="none" stroke="#1a8cff" stroke-width="3"/>
+          <rect x="18" y="30" width="5" height="10" rx="1" fill="#1a8cff"/>
+          <rect x="25.5" y="24" width="5" height="16" rx="1" fill="#3aa0ff"/>
+          <rect x="33" y="18" width="5" height="22" rx="1" fill="#6bbcff"/>
+          <path d="M17 26 L26 21 L33 24 L41 16" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M37 16 h4 v4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="iul-headline">
+        <p class="iul-kicker">Properly Structured IUL</p>
+        <p class="iul-sub">THE PRODUCT DIDN'T CHANGE.<br>THE DESIGN DID.</p>
+      </div>
+    </div>
+
+    <!-- MIDDLE -->
+    <div class="iul-col iul-middle">
+      <p>Same <span class="hl">age</span>.</p>
+      <p>Same <span class="hl">premium</span>.</p>
+      <p>Same <span class="hl">product</span>.</p>
+      <p>Same <span class="hl">contribution</span>.</p>
+      <p class="iul-punch">Different structure. Different outcome.</p>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="iul-col iul-right">
+      <div class="iul-icon" aria-hidden="true">
+        <!-- Shield + document mark -->
+        <svg viewBox="0 0 54 54" xmlns="http://www.w3.org/2000/svg">
+          <rect x="12" y="8" width="24" height="30" rx="3" fill="#fff"/>
+          <line x1="17" y1="16" x2="31" y2="16" stroke="#0a1b3d" stroke-width="2" stroke-linecap="round"/>
+          <line x1="17" y1="21" x2="31" y2="21" stroke="#0a1b3d" stroke-width="2" stroke-linecap="round"/>
+          <line x1="17" y1="26" x2="27" y2="26" stroke="#0a1b3d" stroke-width="2" stroke-linecap="round"/>
+          <path d="M34 26 l9 3 v6 c0 6 -4.5 9 -9 11 c-4.5 -2 -9 -5 -9 -11 v-6 z" fill="#1a8cff" stroke="#0a1b3d" stroke-width="1.5"/>
+          <path d="M30 36 l3 3 l6 -6" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="iul-cta-block">
+        <p class="iul-cta-text">A Properly Structured IUL Starts With The Right Design.</p>
+        <!-- data-cta-link: change href to your GHL funnel / calendar / form URL -->
+        <a class="iul-btn" data-cta-link href="#" target="_blank" rel="noopener">
+          RUN MY NUMBERS
+          <span class="iul-arrow" aria-hidden="true">
+            <svg viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 6 h7 M6 3 l3 3 l-3 3" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
