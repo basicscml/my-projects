@@ -11,13 +11,16 @@ Set by Cory. This policy applies to EVERY integration, current and future.
 2. ANY change action requires a PIN BEFORE it runs.
    No PIN, or wrong PIN -> action is BLOCKED. Jarvis stays read-only.
 
-3. On a change request Jarvis must:
+3. The PIN is VERBAL / SPOKEN. Cory says it out loud to the orb.
+   Jarvis listens for the spoken PIN; no typing required.
+
+4. On a change request Jarvis must:
    a. STOP before doing anything.
-   b. State in plain language exactly what it will do
+   b. SAY OUT LOUD in plain language exactly what it will do
       (which connector, which item, what change).
-   c. Ask: "Enter PIN to approve."
-   d. Correct PIN  -> perform that ONE action, then return to read-only.
-      Wrong/no PIN -> block, do nothing, report blocked.
+   c. Ask aloud: "Say your PIN to approve."
+   d. Correct spoken PIN -> perform that ONE action, then return to read-only.
+      Wrong/no PIN        -> block, do nothing, say it is blocked.
 
 =====================================================
 ## WHAT COUNTS AS A "CHANGE" (PIN REQUIRED)
@@ -44,7 +47,8 @@ Set by Cory. This policy applies to EVERY integration, current and future.
 ## PIN HANDLING RULES
 =====================================================
 - PIN is set and stored ONLY on the PC (config, stored hashed/scrambled).
-- Never print the PIN. Never put it in chat, logs, or GitHub.
+- PIN is approved by VOICE: Cory speaks it, Jarvis matches it to the stored PIN.
+- Never print, display, or repeat the PIN aloud. Never put it in chat, logs, or GitHub.
 - One PIN approves ONE change action, then Jarvis reverts to read-only.
   (Adjustable later if Cory wants a short approved window instead.)
 - Cory can change or revoke the PIN at any time.
