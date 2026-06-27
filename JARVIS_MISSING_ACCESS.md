@@ -54,11 +54,8 @@ Build A (browser, once): Google Cloud project + OAuth client (Desktop app),
       - login + password   (sign up at dataforseo.com -> API access)
     Read-only keyword ranks / SERP data.
 
-[~] STRIPE  — code built (jarvis_addons/stripe_readonly_test.py)
-    Need in config["stripe"]:
-      - restricted_key  (RESTRICTED read-only key, starts "rk_")
-        Stripe -> Developers -> API keys -> Create restricted key. Never the secret key.
-    Money movement always verbal-PIN-gated.
+[parked] STRIPE  — NOT NEEDED right now (Cory). Code exists but unused.
+    If ever wanted: config["stripe"]["restricted_key"] (read-only "rk_" key).
 
 [ ] OPTMYZR
     Need: Optmyzr API key (Settings -> API access; plan must include API).
