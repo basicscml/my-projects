@@ -1,15 +1,17 @@
 """
-Google logins for Jarvis -- BOTH accounts. Jarvis uses each for its own purpose
+Google logins for Jarvis -- BOTH accounts, routed by purpose
 (see GOOGLE_ACCOUNTS_USAGE.md). Run once per account on the PC:
 
   python jarvis_addons\google_oauth_setup.py digitallife
-      -> sign in as digitallifeinsurance@gmail.com  (primary / day-to-day)
+      -> sign in as digitallifeinsurance@gmail.com
+         (Drive, Sheets, Docs, Calendar, GBP, Search Console)
 
-  python jarvis_addons\google_oauth_setup.py workspace
-      -> sign in as cory@thelifeinsuranceprofessionals.com  (business domain)
+  python jarvis_addons\google_oauth_setup.py business
+      -> sign in as cory@thelifeinsuranceprofessionals.com
+         (business email inbox -- read-only; sending added later behind PIN)
 
 Same OAuth client serves both; pick the matching Google account at sign-in.
-Tokens saved under config["google_oauth"][<account>]. Never printed. Read-only.
+Tokens saved under config["google_oauth"][<account>]. Never printed.
 
 PREREQS in config.json (one OAuth client, Desktop app):
   config["google_oauth"]["client_id"], ["client_secret"]
@@ -23,29 +25,30 @@ from pathlib import Path
 
 CONFIG = Path(__file__).resolve().parent.parent / "config.json"
 
-# Both accounts get full read-only Workspace; digitallife also owns GBP + Search Console.
-WORKSPACE_READ = [
-    "https://www.googleapis.com/auth/gmail.readonly",
-    "https://www.googleapis.com/auth/drive.readonly",
-    "https://www.googleapis.com/auth/spreadsheets.readonly",
-    "https://www.googleapis.com/auth/calendar.readonly",
-]
 ACCOUNT_SCOPES = {
-    "digitallife": WORKSPACE_READ + [
-        "https://www.googleapis.com/auth/webmasters.readonly",  # Search Console
-        "https://www.googleapis.com/auth/business.manage",      # GBP (read first; PIN for writes)
+    # digitallifeinsurance@gmail.com -- everything EXCEPT email
+    "digitallife": [
+        "https://www.googleapis.com/auth/drive.readonly",
+        "https://www.googleapis.com/auth/spreadsheets.readonly",
+        "https://www.googleapis.com/auth/documents.readonly",     # Docs
+        "https://www.googleapis.com/auth/calendar.readonly",
+        "https://www.googleapis.com/auth/webmasters.readonly",    # Search Console
+        "https://www.googleapis.com/auth/business.manage",        # GBP (read first; PIN for writes)
     ],
-    "workspace": WORKSPACE_READ,
+    # cory@thelifeinsuranceprofessionals.com -- business EMAIL only
+    "business": [
+        "https://www.googleapis.com/auth/gmail.readonly",         # inbox read; send added later behind PIN
+    ],
 }
 ACCOUNT_HINT = {
     "digitallife": "digitallifeinsurance@gmail.com",
-    "workspace": "cory@thelifeinsuranceprofessionals.com",
+    "business": "cory@thelifeinsuranceprofessionals.com",
 }
 
 
 def run(account):
     if account not in ACCOUNT_SCOPES:
-        print("Usage: python google_oauth_setup.py [digitallife|workspace]")
+        print("Usage: python google_oauth_setup.py [digitallife|business]")
         return
     cfg = json.loads(CONFIG.read_text(encoding="utf-8"))
     g = cfg.setdefault("google_oauth", {})

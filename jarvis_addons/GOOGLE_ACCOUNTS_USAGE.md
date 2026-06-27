@@ -1,36 +1,33 @@
-# Jarvis -- Google Accounts & What Each Is For
-Jarvis has READ-ONLY access to BOTH accounts. It must pick the right one by purpose.
-Any change on either = verbal PIN.
+# Jarvis -- Google Account Routing (set by Cory)
+Read-only by default. Any change on either account = verbal PIN.
 
 =====================================================
-## ACCOUNT 1 -- PRIMARY / DAY-TO-DAY
+## EMAIL -> business account
+cory@thelifeinsuranceprofessionals.com   (config key: "business")
+=====================================================
+- Gmail / business email: inbox reading now (read-only).
+- Email SENDING: added later as a separate step, ALWAYS verbal-PIN-gated.
+- This account is used for EMAIL ONLY.
+
+=====================================================
+## EVERYTHING ELSE -> primary account
 digitallifeinsurance@gmail.com   (config key: "digitallife")
 =====================================================
-This is the main account Cory actually works in. Use it for:
-  - Gmail        (day-to-day email)
-  - Drive        (his files)
-  - Sheets       (his spreadsheets)
-  - Calendar     (his schedule)
-  - Google Business Profile  (reviews, calls, local insights)  [GBP owner]
-  - Search Console (thelifeinsuranceprofessionals.com search performance)
-  - Already connected on this account: GA4, Google Ads, YouTube
-DEFAULT: if it's unclear which account to use, use this one.
+- Google Drive            (files)
+- Google Sheets           (live inside Drive)
+- Google Docs             (unless Cory says otherwise)
+- File storage / exports / build-package documents  -> this Drive
+- Google Calendar
+- Google Business Profile (reviews, calls, insights) [owner]
+- Search Console          (thelifeinsuranceprofessionals.com)
+- Already connected: GA4, Google Ads, YouTube
 
 =====================================================
-## ACCOUNT 2 -- BUSINESS DOMAIN WORKSPACE
-cory@thelifeinsuranceprofessionals.com   (config key: "workspace")
+## ROUTING RULES FOR JARVIS
 =====================================================
-The Google Workspace account on the company domain
-(admin console: admin.google.com). Use it for:
-  - Gmail / Drive / Sheets / Calendar that live on the BUSINESS domain
-  - Professional / client-facing email under @thelifeinsuranceprofessionals.com
-Use this when the request is about the business-domain email or files
-specifically, not the personal day-to-day account.
-
-=====================================================
-## RULE OF THUMB
-=====================================================
-- "my email / my drive / my calendar / reviews / analytics" -> digitallife (primary)
-- "the business email / company domain / professional inbox" -> workspace
-- When unsure -> ask Cory which account, or default to digitallife.
-- CORY: if any of the above is wrong, tell Jarvis and it'll relabel.
+- Anything about EMAIL (read inbox, send, drafts) -> "business" account.
+- Drive / Sheets / Docs / files / exports / saving a built document -> "digitallife".
+- Calendar -> "digitallife".
+- GBP / Search Console / analytics -> "digitallife".
+- DEFAULT when unclear -> "digitallife" (except email, which is always "business").
+- Sending email or any write = STOP and ask for verbal PIN first.
