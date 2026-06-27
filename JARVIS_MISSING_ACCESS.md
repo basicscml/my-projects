@@ -1,7 +1,8 @@
 # Jarvis — Connections & Missing Access Checklist
 Working build only: C:\Users\User\Desktop\jarvis-voice-base  (port 8340)
 Status read live at: http://127.0.0.1:8340/integrations
-Rule: read-only first. Any send/edit/delete/move/publish/payment = approval-gated.
+Rule: read-only first. Any send/edit/delete/move/publish/payment = verbal-PIN-gated.
+Legend: [x] done   [~] code built, key/login needed   [ ] not started
 
 =====================================================
 ## CONNECTED & VERIFIED  (do not break these)
@@ -18,83 +19,67 @@ Rule: read-only first. Any send/edit/delete/move/publish/payment = approval-gate
 [x] Computer / file system operator — changes require approval
 
 =====================================================
-## PARTIAL — works now, official upgrade pending
+## GOOGLE — two accounts, routed by purpose
+(see jarvis_addons/GOOGLE_ACCOUNTS_USAGE.md)
 =====================================================
-[ ] Official Google Ads API  (GAQL.app covers reporting meanwhile)
-    Missing:
-      - Google Ads developer token  (Ads account -> API Center)
-      - Google Ads refresh token    (OAuth login, one time)
-      - (also need: OAuth client ID + secret)
+Build A (browser, once): Google Cloud project + OAuth client (Desktop app),
+  enable Gmail/Drive/Sheets/Docs/Calendar/Search Console/Business Profile APIs,
+  add BOTH emails as test users. Put client_id + client_secret in config.json.
 
-=====================================================
-## NEXT TARGETS — gather these to connect
-=====================================================
-
-[ ] GOOGLE WORKSPACE  (one OAuth setup covers all 5)
-    Where: Google Cloud Console -> APIs & Services
-    Steps: enable Gmail, Drive, Sheets, Calendar, Search Console APIs
-           -> create OAuth client -> authorize .readonly scopes
-    Hand Jarvis:
-      - OAuth client ID
-      - OAuth client secret
-      - refresh token (from one login)
-    Sub-items:
-      [ ] Gmail          — read-only first
-      [ ] Drive          — read-only first
-      [ ] Sheets         — read-only first
-      [ ] Calendar       — read-only first
-      [ ] Search Console — read-only
-
-[ ] WORDPRESS
-    Hand Jarvis:
-      - WordPress admin URL
-      - WordPress username
-      - Application Password  (WP Admin -> Users -> Profile -> Application Passwords -> Add New)
-    Note: write-capable -> keep editing/publishing approval-gated.
-
-[~] GOOGLE BUSINESS PROFILE (GBP)   <-- IDs DONE, OAuth login still needed
-    Owner access: VERIFIED (digitallifeinsurance@gmail.com)
+[~] digitallifeinsurance@gmail.com  (config key "digitallife")  — code built
+    Login: python jarvis_addons/google_oauth_setup.py digitallife
+    Covers: Drive, Sheets, Docs, Calendar, GBP, Search Console
     [x] GBP Account ID : 10179203546351514980
     [x] GBP Location ID: 9899246156341434499
     [x] Store Code     : 09109871034188580570
-    [ ] Google OAuth with Business Profile permission (the only thing left)
-        -> stored in config["google_oauth"]["access_token"]
-        -> scope: https://www.googleapis.com/auth/business.manage
-           (Jarvis self-restricts to READ until a verbal PIN is given)
-    Read-only first: reviews, calls, profile insights.
-    Code ready: jarvis_addons/gbp_readonly_test.py
-    Writes (reply/post/edit/photos) = verbal PIN required.
+    Need: the one-time browser sign-in.
 
-[ ] DATAFORSEO / SERP
-    Hand Jarvis (one of):
-      - DataForSEO API login + password, OR
-      - SERP provider API key
-    Get it: sign up -> copy key from dashboard.
+[~] cory@thelifeinsuranceprofessionals.com  (config key "business")  — code built
+    Login: python jarvis_addons/google_oauth_setup.py business
+    Covers: business email INBOX (read-only). Sending = later, PIN-gated.
+    Need: the one-time browser sign-in.
+
+=====================================================
+## OTHER INTEGRATIONS
+=====================================================
+[~] WORDPRESS  — code built (jarvis_addons/wordpress_readonly_test.py)
+    Need in config["wordpress"]:
+      - url       (https://thelifeinsuranceprofessionals.com/wp-admin)
+      - username  (cory@thelifeinsuranceprofessionals.com)
+      - app_password  (WP Admin -> Users -> Profile -> Application Passwords)
+    Editing/publishing = verbal PIN.
+
+[~] DATAFORSEO / SERP  — code built (jarvis_addons/dataforseo_readonly_test.py)
+    Need in config["dataforseo"]:
+      - login + password   (sign up at dataforseo.com -> API access)
+    Read-only keyword ranks / SERP data.
+
+[~] STRIPE  — code built (jarvis_addons/stripe_readonly_test.py)
+    Need in config["stripe"]:
+      - restricted_key  (RESTRICTED read-only key, starts "rk_")
+        Stripe -> Developers -> API keys -> Create restricted key. Never the secret key.
+    Money movement always verbal-PIN-gated.
 
 [ ] OPTMYZR
-    Hand Jarvis:
-      - Optmyzr API key  (Settings -> API access)
-    Note: requires a plan that includes API.
+    Need: Optmyzr API key (Settings -> API access; plan must include API).
 
-[ ] STRIPE  (later)
-    Hand Jarvis:
-      - Restricted key, READ-ONLY scopes only
-        (Stripe -> Developers -> API keys -> Create restricted key)
-    Rule: never the secret key. Money movement always approval-gated.
+[ ] OFFICIAL GOOGLE ADS API  (GAQL.app covers reporting meanwhile)
+    Need: developer token + refresh token (+ OAuth client id/secret).
 
 [ ] SOCIAL — Facebook / Instagram / LinkedIn
-    Hand Jarvis:
-      - Facebook/Instagram: Meta Business app token (Graph API, read scopes)
-      - LinkedIn: app client ID + secret + access token (read scopes)
-    Read-only first: page/post/insights reads.
+    Need: Meta Business app token (FB/IG, read scopes);
+          LinkedIn app client id + secret + access token (read scopes).
+    Read-only first.
+
+=====================================================
+## SECURITY / CONTROL (already set)
+=====================================================
+[x] Verbal PIN gate — jarvis_addons/approval_gate.py (read JARVIS_APPROVAL_POLICY.md)
+[x] PIN file template — jarvis_pin.txt.example (real jarvis_pin.txt is git-ignored)
 
 =====================================================
 ## HOW TO USE THIS
 =====================================================
-For each unchecked item:
-  1. PC Claude Code checks if the credential already exists locally
-     (config.json / token files) before asking.
-  2. If found -> connect -> run ONE real read-only test call -> check the box.
-  3. If missing -> that's the exact item to go get (listed above).
-
+For each [~] item: drop the key/login into config.json on the PC, run its test
+script, and it flips on. For each [ ] item: that's the key still to go get.
 Never print or expose token values. Confirm /integrations still passes after each add.
