@@ -1,21 +1,16 @@
-# Google logins for Jarvis -- two accounts, one setup. All READ-ONLY.
-Changes later = verbal PIN.
+# ONE Google login for Jarvis. Everything is on digitallifeinsurance@gmail.com.
+All READ-ONLY. Changes later = verbal PIN.
 
-Account split (as Cory confirmed):
-  digitallifeinsurance@gmail.com   = PRIMARY. GBP + Search Console
-                                     (also already: GA4, Google Ads, YouTube)
-  cory@thelifeinsuranceprofessionals.com = WORKSPACE ONLY
-                                     (Gmail, Drive, Sheets, Calendar)
+This single sign-in connects:
+  Gmail, Drive, Sheets, Calendar, Search Console, Google Business Profile.
+(GA4, Google Ads, YouTube are already connected on this same account.)
 
 ## PART A - Google Cloud Console (browser, ~5 min, ONE time)
-Same OAuth client serves both accounts.
 1. https://console.cloud.google.com/ -> create/select project "Jarvis".
 2. APIs & Services -> Enable APIs -> enable:
      Gmail, Drive, Sheets, Calendar, Search Console, Business Profile.
-3. OAuth consent screen -> External -> app name "Jarvis" + your support email.
-   Test users -> ADD BOTH:
-     - digitallifeinsurance@gmail.com
-     - cory@thelifeinsuranceprofessionals.com
+3. OAuth consent screen -> External -> app name "Jarvis" + support email.
+   Test users -> ADD: digitallifeinsurance@gmail.com
 4. Credentials -> Create Credentials -> OAuth client ID -> Desktop app -> Create.
    Copy Client ID + Client secret.
 
@@ -25,18 +20,17 @@ Same OAuth client serves both accounts.
     "client_secret": "PASTE_CLIENT_SECRET"
   }
 
-## PART C - run the login twice (sign in as the matching account)
+## PART C - run the login ONCE
   cd C:\Users\User\Desktop\jarvis-voice-base
-
-  python jarvis_addons\google_oauth_setup.py digitallife
-     -> sign in as digitallifeinsurance@gmail.com   (GBP + Search Console)
-
-  python jarvis_addons\google_oauth_setup.py workspace
-     -> sign in as cory@thelifeinsuranceprofessionals.com   (Gmail/Drive/Sheets/Calendar)
+  python jarvis_addons\google_oauth_setup.py
+     -> browser opens -> sign in as digitallifeinsurance@gmail.com -> approve
 
 ## PART D - verify reads
-  python jarvis_addons\gbp_readonly_test.py             (reviews + rating)
-  python jarvis_addons\searchconsole_readonly_test.py   (site clicks/impressions)
-  python jarvis_addons\google_workspace_readonly_test.py (Gmail/Drive/Calendar)
+  python jarvis_addons\google_workspace_readonly_test.py   (Gmail/Drive/Calendar)
+  python jarvis_addons\gbp_readonly_test.py                (reviews + rating)
+  python jarvis_addons\searchconsole_readonly_test.py      (site clicks/impressions)
 
-Two sign-ins -> all read-only. Writes always need the verbal PIN.
+One sign-in -> six connections, all read-only. Writes always need the verbal PIN.
+
+Note: admin.google.com (Workspace admin for thelifeinsuranceprofessionals.com)
+is a separate domain-management console -- NOT needed for these integrations.

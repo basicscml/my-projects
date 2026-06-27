@@ -1,53 +1,37 @@
 """
-Google login for Jarvis -- two accounts. Run ONCE PER ACCOUNT on the PC.
-Same OAuth client works for both; sign in as the right account each time.
+ONE Google login for Jarvis. Everything is on digitallifeinsurance@gmail.com.
+Run ONCE on the PC:
 
-  python jarvis_addons\google_oauth_setup.py digitallife
-      -> sign in as digitallifeinsurance@gmail.com
-         (Google Business Profile + Search Console; primary account)
+  python jarvis_addons\google_oauth_setup.py
 
-  python jarvis_addons\google_oauth_setup.py workspace
-      -> sign in as cory@thelifeinsuranceprofessionals.com
-         (Gmail, Drive, Sheets, Calendar ONLY)
-
-Tokens saved under config["google_oauth"][<account>]. Never printed. Read-only.
+Opens browser -> sign in as digitallifeinsurance@gmail.com -> approve.
+Connects (READ-ONLY): Gmail, Drive, Sheets, Calendar, Search Console, GBP.
+Tokens saved under config["google_oauth"]["digitallife"]. Never printed.
 
 PREREQS in config.json (one OAuth client, Desktop app):
   config["google_oauth"]["client_id"]
   config["google_oauth"]["client_secret"]
-Add BOTH emails as Test users on the OAuth consent screen.
 
 If needed once:  pip install google-auth-oauthlib
 """
-import sys
 import json
 from pathlib import Path
 
 CONFIG = Path(__file__).resolve().parent.parent / "config.json"
+ACCOUNT = "digitallife"
+EMAIL = "digitallifeinsurance@gmail.com"
 
-ACCOUNT_SCOPES = {
-    "digitallife": [
-        "https://www.googleapis.com/auth/business.manage",      # GBP (read first; PIN for writes)
-        "https://www.googleapis.com/auth/webmasters.readonly",  # Search Console
-    ],
-    "workspace": [
-        "https://www.googleapis.com/auth/gmail.readonly",
-        "https://www.googleapis.com/auth/drive.readonly",
-        "https://www.googleapis.com/auth/spreadsheets.readonly",
-        "https://www.googleapis.com/auth/calendar.readonly",
-    ],
-}
-
-ACCOUNT_HINT = {
-    "digitallife": "digitallifeinsurance@gmail.com",
-    "workspace": "cory@thelifeinsuranceprofessionals.com",
-}
+SCOPES = [
+    "https://www.googleapis.com/auth/gmail.readonly",
+    "https://www.googleapis.com/auth/drive.readonly",
+    "https://www.googleapis.com/auth/spreadsheets.readonly",
+    "https://www.googleapis.com/auth/calendar.readonly",
+    "https://www.googleapis.com/auth/webmasters.readonly",   # Search Console
+    "https://www.googleapis.com/auth/business.manage",        # GBP (read first; PIN for writes)
+]
 
 
-def run(account):
-    if account not in ACCOUNT_SCOPES:
-        print("Usage: python google_oauth_setup.py [digitallife|workspace]")
-        return
+def run():
     cfg = json.loads(CONFIG.read_text(encoding="utf-8"))
     g = cfg.setdefault("google_oauth", {})
     cid, secret = g.get("client_id"), g.get("client_secret")
@@ -61,7 +45,7 @@ def run(account):
         print("Need the library once:  pip install google-auth-oauthlib")
         return
 
-    print(f"Sign in as: {ACCOUNT_HINT[account]}")
+    print(f"Sign in as: {EMAIL}")
     client_config = {
         "installed": {
             "client_id": cid, "client_secret": secret,
@@ -70,19 +54,20 @@ def run(account):
             "redirect_uris": ["http://localhost"],
         }
     }
-    flow = InstalledAppFlow.from_client_config(client_config, ACCOUNT_SCOPES[account])
+    flow = InstalledAppFlow.from_client_config(client_config, SCOPES)
     creds = flow.run_local_server(port=0, prompt="consent")
-    g[account] = {
+    g[ACCOUNT] = {
         "access_token": creds.token,
         "refresh_token": creds.refresh_token,
         "token_uri": "https://oauth2.googleapis.com/token",
-        "scopes": ACCOUNT_SCOPES[account],
-        "email_hint": ACCOUNT_HINT[account],
+        "scopes": SCOPES,
+        "email_hint": EMAIL,
     }
     cfg["google_oauth"] = g
     CONFIG.write_text(json.dumps(cfg, indent=2), encoding="utf-8")
-    print(f"SUCCESS: '{account}' login saved (read-only). No tokens printed.")
+    print("SUCCESS: Google login saved (read-only): Gmail, Drive, Sheets, "
+          "Calendar, Search Console, GBP. No tokens printed.")
 
 
 if __name__ == "__main__":
-    run(sys.argv[1] if len(sys.argv) > 1 else "")
+    run()

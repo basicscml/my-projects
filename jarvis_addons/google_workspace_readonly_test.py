@@ -1,6 +1,6 @@
 """
-Google Workspace read-only smoke test (cory@thelifeinsuranceprofessionals.com).
-Reads config["google_oauth"]["workspace"]. Gmail, Drive, Calendar, Sheets.
+Google read-only smoke test -- all on digitallifeinsurance@gmail.com.
+Reads config["google_oauth"]["digitallife"]. Gmail, Drive, Calendar, Sheets.
 No writes. Never prints tokens.
 """
 import json
@@ -12,7 +12,7 @@ CONFIG = Path(__file__).resolve().parent.parent / "config.json"
 def _creds():
     from google.oauth2.credentials import Credentials
     cfg = json.loads(CONFIG.read_text(encoding="utf-8"))
-    g = cfg["google_oauth"]; acct = g["workspace"]
+    g = cfg["google_oauth"]; acct = g["digitallife"]
     return Credentials(
         token=acct.get("access_token"), refresh_token=acct.get("refresh_token"),
         token_uri=acct.get("token_uri", "https://oauth2.googleapis.com/token"),
@@ -29,8 +29,8 @@ def run():
     try:
         creds = _creds()
     except KeyError:
-        return ("MISSING: workspace login not done. Run:  "
-                "python jarvis_addons\\google_oauth_setup.py workspace")
+        return ("MISSING: Google login not done. Run:  "
+                "python jarvis_addons\\google_oauth_setup.py")
     out = []
     for label, fn in [
         ("Gmail", lambda: build('gmail','v1',credentials=creds).users().getProfile(userId='me').execute().get('emailAddress')),
