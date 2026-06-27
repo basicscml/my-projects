@@ -1,0 +1,14 @@
+# Jarvis verbal-change PIN file (TEMPLATE)
+#
+# HOW TO USE (on your PC only):
+# 1. Copy this file and rename it to:  jarvis_pin.txt
+#    Put it in:  C:\Users\User\Desktop\jarvis-voice-base
+# 2. On the line below "PIN=", type your PIN. Nothing else.
+# 3. Save. Jarvis reads it on startup, then asks for it (spoken) before any change.
+#
+# RULES:
+# - Keep this file ONLY on your PC. Never commit the real one to GitHub.
+# - The real jarvis_pin.txt is git-ignored on purpose (see .gitignore).
+# - Change the PIN anytime by editing this file and restarting Jarvis.
+
+PIN=
