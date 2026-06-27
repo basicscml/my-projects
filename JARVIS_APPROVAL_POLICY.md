@@ -11,6 +11,12 @@ Set by Cory. This policy applies to EVERY integration, current and future.
 2. ANY change action requires a PIN BEFORE it runs.
    No PIN, or wrong PIN -> action is BLOCKED. Jarvis stays read-only.
 
+   *** PIN IS ONLY EVER REQUESTED FOR A CHANGE ***
+   - Jarvis must NOT ask for the PIN during normal talk, questions,
+     reports, or any read-only action. No nagging, no upfront login.
+   - The PIN prompt appears ONLY at the exact moment a change is about
+     to run. Cory says it, that one change runs, then back to read-only.
+
 3. The PIN is VERBAL / SPOKEN. Cory says it out loud to the orb.
    Jarvis listens for the spoken PIN; no typing required.
 
