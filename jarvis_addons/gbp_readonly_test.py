@@ -29,7 +29,7 @@ LOCATION_ID = "9899246156341434499"
 def _access_token():
     cfg = json.loads(CONFIG.read_text(encoding="utf-8"))
     # GBP uses the digitallifeinsurance@gmail.com login stored under "gbp"
-    return cfg.get("google_oauth", {}).get("gbp", {}).get("access_token")
+    return cfg.get("google_oauth", {}).get("digitallife", {}).get("access_token")
 
 
 def _get(url, token):
@@ -42,7 +42,7 @@ def test_read():
     token = _access_token()
     if not token:
         return ("MISSING: need Google OAuth access token in "
-                "config['google_oauth']['gbp']['access_token']. Run: python jarvis_addons/google_oauth_setup.py gbp. "
+                "config['google_oauth']['gbp']['access_token']. Run: python jarvis_addons/google_oauth_setup.py digitallife. "
                 "IDs are ready; only the Google login is left.")
     # Read-only: pull reviews (most recent) for this location.
     reviews_url = (

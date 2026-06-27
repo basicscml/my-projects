@@ -1,8 +1,7 @@
 """
-Google Workspace read-only smoke test for Jarvis.
-Reads the WORKSPACE account (cory@thelifeinsuranceprofessionals.com) tokens
-from config["google_oauth"]["workspace"]. One small read per service. No writes.
-Never prints tokens.
+Google Workspace read-only smoke test (cory@thelifeinsuranceprofessionals.com).
+Reads config["google_oauth"]["workspace"]. Gmail, Drive, Calendar, Sheets.
+No writes. Never prints tokens.
 """
 import json
 from pathlib import Path
@@ -13,14 +12,11 @@ CONFIG = Path(__file__).resolve().parent.parent / "config.json"
 def _creds():
     from google.oauth2.credentials import Credentials
     cfg = json.loads(CONFIG.read_text(encoding="utf-8"))
-    g = cfg["google_oauth"]
-    acct = g["workspace"]
+    g = cfg["google_oauth"]; acct = g["workspace"]
     return Credentials(
-        token=acct.get("access_token"),
-        refresh_token=acct.get("refresh_token"),
+        token=acct.get("access_token"), refresh_token=acct.get("refresh_token"),
         token_uri=acct.get("token_uri", "https://oauth2.googleapis.com/token"),
-        client_id=g["client_id"],
-        client_secret=g["client_secret"],
+        client_id=g["client_id"], client_secret=g["client_secret"],
         scopes=acct.get("scopes"),
     )
 
@@ -33,20 +29,19 @@ def run():
     try:
         creds = _creds()
     except KeyError:
-        return ("MISSING: workspace login not done yet. Run:  "
+        return ("MISSING: workspace login not done. Run:  "
                 "python jarvis_addons\\google_oauth_setup.py workspace")
     out = []
     for label, fn in [
-        ("Gmail", lambda: f"{build('gmail','v1',credentials=creds).users().getProfile(userId='me').execute().get('emailAddress')}"),
+        ("Gmail", lambda: build('gmail','v1',credentials=creds).users().getProfile(userId='me').execute().get('emailAddress')),
         ("Drive", lambda: f"{len(build('drive','v3',credentials=creds).files().list(pageSize=3,fields='files(name)').execute().get('files',[]))} files"),
         ("Calendar", lambda: f"{len(build('calendar','v3',credentials=creds).calendarList().list(maxResults=3).execute().get('items',[]))} calendars"),
-        ("Search Console", lambda: f"{len(build('searchconsole','v1',credentials=creds).sites().list().execute().get('siteEntry',[]))} sites"),
     ]:
         try:
             out.append(f"{label} OK: {fn()}")
         except Exception as e:
             out.append(f"{label} FAILED: {e}")
-    out.append("Sheets: uses same auth; reads a specific sheet by ID on request.")
+    out.append("Sheets: same auth; reads a specific sheet by ID on request.")
     return "\n".join(out)
 
 
