@@ -52,12 +52,18 @@ Rule: read-only first. Any send/edit/delete/move/publish/payment = approval-gate
       - Application Password  (WP Admin -> Users -> Profile -> Application Passwords -> Add New)
     Note: write-capable -> keep editing/publishing approval-gated.
 
-[ ] GOOGLE BUSINESS PROFILE (GBP)
-    Need first: owner OR manager access on the listing
-    Hand Jarvis:
-      - GBP Account ID
-      - GBP Location ID
+[~] GOOGLE BUSINESS PROFILE (GBP)   <-- IDs DONE, OAuth login still needed
+    Owner access: VERIFIED (digitallifeinsurance@gmail.com)
+    [x] GBP Account ID : 10179203546351514980
+    [x] GBP Location ID: 9899246156341434499
+    [x] Store Code     : 09109871034188580570
+    [ ] Google OAuth with Business Profile permission (the only thing left)
+        -> stored in config["google_oauth"]["access_token"]
+        -> scope: https://www.googleapis.com/auth/business.manage
+           (Jarvis self-restricts to READ until a verbal PIN is given)
     Read-only first: reviews, calls, profile insights.
+    Code ready: jarvis_addons/gbp_readonly_test.py
+    Writes (reply/post/edit/photos) = verbal PIN required.
 
 [ ] DATAFORSEO / SERP
     Hand Jarvis (one of):
