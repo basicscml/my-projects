@@ -1,41 +1,60 @@
 """
-ONE-TIME Google login for Jarvis.
-Run this ONCE on the PC. It opens your browser, you sign in as
-digitallifeinsurance@gmail.com, approve read-only access, and it saves the
-tokens into config.json. Covers GBP + all of Workspace in a single login.
+Google login for Jarvis -- supports MULTIPLE accounts.
+Run ONCE PER ACCOUNT on the PC. Same OAuth client works for both; you just sign
+in as the right Google account each time.
 
-Never prints tokens. Read-only scopes only (GBP has just one scope, so Jarvis
-self-restricts it to reads until a verbal PIN is given).
+  python jarvis_addons\google_oauth_setup.py workspace
+      -> sign in as cory@thelifeinsuranceprofessionals.com
+         (Gmail, Drive, Sheets, Calendar, Search Console)
 
-PREREQS in config.json (from Google Cloud Console -> OAuth client, Desktop app):
+  python jarvis_addons\google_oauth_setup.py gbp
+      -> sign in as digitallifeinsurance@gmail.com
+         (Google Business Profile)
+
+Tokens saved under config["google_oauth"][<account>]. Never printed. Read-only.
+
+PREREQS in config.json (one OAuth client, Desktop app, from Google Cloud Console):
   config["google_oauth"]["client_id"]
   config["google_oauth"]["client_secret"]
+On the OAuth consent screen, add BOTH emails as Test users.
 
-If google-auth-oauthlib isn't installed:  pip install google-auth-oauthlib
+If needed once:  pip install google-auth-oauthlib
 """
+import sys
 import json
 from pathlib import Path
 
 CONFIG = Path(__file__).resolve().parent.parent / "config.json"
 
-SCOPES = [
-    "https://www.googleapis.com/auth/gmail.readonly",
-    "https://www.googleapis.com/auth/drive.readonly",
-    "https://www.googleapis.com/auth/spreadsheets.readonly",
-    "https://www.googleapis.com/auth/calendar.readonly",
-    "https://www.googleapis.com/auth/webmasters.readonly",   # Search Console
-    "https://www.googleapis.com/auth/business.manage",        # GBP (read first)
-]
+ACCOUNT_SCOPES = {
+    "workspace": [
+        "https://www.googleapis.com/auth/gmail.readonly",
+        "https://www.googleapis.com/auth/drive.readonly",
+        "https://www.googleapis.com/auth/spreadsheets.readonly",
+        "https://www.googleapis.com/auth/calendar.readonly",
+        "https://www.googleapis.com/auth/webmasters.readonly",  # Search Console
+    ],
+    "gbp": [
+        "https://www.googleapis.com/auth/business.manage",      # read first; PIN for writes
+    ],
+}
+
+ACCOUNT_HINT = {
+    "workspace": "cory@thelifeinsuranceprofessionals.com",
+    "gbp": "digitallifeinsurance@gmail.com",
+}
 
 
-def run():
+def run(account):
+    if account not in ACCOUNT_SCOPES:
+        print(f"Usage: python google_oauth_setup.py [workspace|gbp]")
+        return
     cfg = json.loads(CONFIG.read_text(encoding="utf-8"))
-    g = cfg.get("google_oauth", {})
+    g = cfg.setdefault("google_oauth", {})
     cid, secret = g.get("client_id"), g.get("client_secret")
     if not cid or not secret:
         print("MISSING: add google_oauth.client_id and google_oauth.client_secret "
-              "to config.json first (Google Cloud Console -> Credentials -> "
-              "OAuth client ID -> Desktop app).")
+              "to config.json first (Google Cloud Console -> OAuth client -> Desktop app).")
         return
 
     try:
@@ -44,6 +63,7 @@ def run():
         print("Need the library once:  pip install google-auth-oauthlib")
         return
 
+    print(f"Sign in as: {ACCOUNT_HINT[account]}")
     client_config = {
         "installed": {
             "client_id": cid,
@@ -53,20 +73,20 @@ def run():
             "redirect_uris": ["http://localhost"],
         }
     }
-    flow = InstalledAppFlow.from_client_config(client_config, SCOPES)
-    creds = flow.run_local_server(port=0, prompt="consent")  # opens browser
+    flow = InstalledAppFlow.from_client_config(client_config, ACCOUNT_SCOPES[account])
+    creds = flow.run_local_server(port=0, prompt="consent")
 
-    # Save tokens back into config.json (never printed)
-    g["access_token"] = creds.token
-    g["refresh_token"] = creds.refresh_token
-    g["token_uri"] = "https://oauth2.googleapis.com/token"
-    g["scopes"] = SCOPES
+    g[account] = {
+        "access_token": creds.token,
+        "refresh_token": creds.refresh_token,
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "scopes": ACCOUNT_SCOPES[account],
+        "email_hint": ACCOUNT_HINT[account],
+    }
     cfg["google_oauth"] = g
     CONFIG.write_text(json.dumps(cfg, indent=2), encoding="utf-8")
-    print("SUCCESS: Google login saved. Gmail, Drive, Sheets, Calendar, "
-          "Search Console, and GBP are now connected READ-ONLY.")
-    print("(No tokens printed. Next: run the read-only tests.)")
+    print(f"SUCCESS: '{account}' login saved (read-only). No tokens printed.")
 
 
 if __name__ == "__main__":
-    run()
+    run(sys.argv[1] if len(sys.argv) > 1 else "")

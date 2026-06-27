@@ -1,7 +1,7 @@
 """
 Google Workspace read-only smoke test for Jarvis.
-After google_oauth_setup.py has saved tokens, this does ONE small read per
-service to prove each connection. No sending, editing, or deleting.
+Reads the WORKSPACE account (cory@thelifeinsuranceprofessionals.com) tokens
+from config["google_oauth"]["workspace"]. One small read per service. No writes.
 Never prints tokens.
 """
 import json
@@ -11,16 +11,17 @@ CONFIG = Path(__file__).resolve().parent.parent / "config.json"
 
 
 def _creds():
-    from google.oauth2.credentials import Credentials  # google-auth
+    from google.oauth2.credentials import Credentials
     cfg = json.loads(CONFIG.read_text(encoding="utf-8"))
     g = cfg["google_oauth"]
+    acct = g["workspace"]
     return Credentials(
-        token=g.get("access_token"),
-        refresh_token=g.get("refresh_token"),
-        token_uri=g.get("token_uri", "https://oauth2.googleapis.com/token"),
+        token=acct.get("access_token"),
+        refresh_token=acct.get("refresh_token"),
+        token_uri=acct.get("token_uri", "https://oauth2.googleapis.com/token"),
         client_id=g["client_id"],
         client_secret=g["client_secret"],
-        scopes=g.get("scopes"),
+        scopes=acct.get("scopes"),
     )
 
 
@@ -29,40 +30,23 @@ def run():
         from googleapiclient.discovery import build
     except ImportError:
         return "Need libraries once:  pip install google-api-python-client google-auth"
-    creds = _creds()
+    try:
+        creds = _creds()
+    except KeyError:
+        return ("MISSING: workspace login not done yet. Run:  "
+                "python jarvis_addons\\google_oauth_setup.py workspace")
     out = []
-
-    try:
-        gmail = build("gmail", "v1", credentials=creds)
-        prof = gmail.users().getProfile(userId="me").execute()
-        out.append(f"Gmail OK: {prof.get('emailAddress')} "
-                   f"({prof.get('messagesTotal')} messages)")
-    except Exception as e:
-        out.append(f"Gmail FAILED: {e}")
-
-    try:
-        drive = build("drive", "v3", credentials=creds)
-        files = drive.files().list(pageSize=3, fields="files(name)").execute()
-        names = ", ".join(f["name"] for f in files.get("files", [])) or "(none)"
-        out.append(f"Drive OK: recent files -> {names}")
-    except Exception as e:
-        out.append(f"Drive FAILED: {e}")
-
-    try:
-        cal = build("calendar", "v3", credentials=creds)
-        cals = cal.calendarList().list(maxResults=3).execute()
-        out.append(f"Calendar OK: {len(cals.get('items', []))} calendars visible")
-    except Exception as e:
-        out.append(f"Calendar FAILED: {e}")
-
-    try:
-        sc = build("searchconsole", "v1", credentials=creds)
-        sites = sc.sites().list().execute()
-        out.append(f"Search Console OK: {len(sites.get('siteEntry', []))} sites")
-    except Exception as e:
-        out.append(f"Search Console FAILED: {e}")
-
-    out.append("Sheets: shares Drive auth; reads a specific sheet by ID on request.")
+    for label, fn in [
+        ("Gmail", lambda: f"{build('gmail','v1',credentials=creds).users().getProfile(userId='me').execute().get('emailAddress')}"),
+        ("Drive", lambda: f"{len(build('drive','v3',credentials=creds).files().list(pageSize=3,fields='files(name)').execute().get('files',[]))} files"),
+        ("Calendar", lambda: f"{len(build('calendar','v3',credentials=creds).calendarList().list(maxResults=3).execute().get('items',[]))} calendars"),
+        ("Search Console", lambda: f"{len(build('searchconsole','v1',credentials=creds).sites().list().execute().get('siteEntry',[]))} sites"),
+    ]:
+        try:
+            out.append(f"{label} OK: {fn()}")
+        except Exception as e:
+            out.append(f"{label} FAILED: {e}")
+    out.append("Sheets: uses same auth; reads a specific sheet by ID on request.")
     return "\n".join(out)
 
 
