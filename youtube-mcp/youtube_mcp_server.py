@@ -467,6 +467,113 @@ def recommend_improvements(video_id: str) -> dict:
     }
 
 
+@mcp.tool()
+def get_analytics_report(days: int = 10) -> dict:
+    """Return a full channel analytics report for the last N days.
+
+    Args:
+        days: Size of the trailing window in days (default 10).
+
+    Uses the YouTube Analytics API and requires the channel owner's
+    credentials (which this project has). Includes headline totals,
+    a daily trend, top videos, traffic sources, and top countries.
+    """
+    from datetime import date, timedelta
+
+    days = max(1, min(int(days), 365))
+    end = date.today()
+    start = end - timedelta(days=days - 1)
+    start_s, end_s = start.isoformat(), end.isoformat()
+
+    yta = _youtube_analytics()
+
+    def _query(metrics, dimensions=None, sort=None, max_results=None):
+        params = {
+            "ids": "channel==MINE",
+            "startDate": start_s,
+            "endDate": end_s,
+            "metrics": metrics,
+        }
+        if dimensions:
+            params["dimensions"] = dimensions
+        if sort:
+            params["sort"] = sort
+        if max_results:
+            params["maxResults"] = max_results
+        try:
+            return yta.reports().query(**params).execute()
+        except Exception as exc:  # surface partial report rather than failing all
+            return {"error": _redact(str(exc)), "columnHeaders": [], "rows": []}
+
+    def _rows_as_dicts(resp):
+        headers = [h.get("name") for h in resp.get("columnHeaders", [])]
+        return [dict(zip(headers, row)) for row in resp.get("rows", [])]
+
+    # 1. Headline totals for the window.
+    totals_metrics = (
+        "views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage,"
+        "subscribersGained,subscribersLost,likes,comments,shares"
+    )
+    totals_resp = _query(totals_metrics)
+    totals_rows = _rows_as_dicts(totals_resp)
+    totals = totals_rows[0] if totals_rows else {}
+    if "subscribersGained" in totals or "subscribersLost" in totals:
+        totals["netSubscribers"] = _int(totals.get("subscribersGained")) - _int(
+            totals.get("subscribersLost")
+        )
+
+    # 2. Daily trend.
+    daily = _rows_as_dicts(
+        _query("views,estimatedMinutesWatched", dimensions="day", sort="day")
+    )
+
+    # 3. Top videos in the window.
+    top_videos = _rows_as_dicts(
+        _query(
+            "views,estimatedMinutesWatched,likes,comments",
+            dimensions="video",
+            sort="-views",
+            max_results=10,
+        )
+    )
+    # Attach titles for readability.
+    if top_videos:
+        ids = [r.get("video") for r in top_videos if r.get("video")]
+        try:
+            meta = (
+                _youtube_data()
+                .videos()
+                .list(part="snippet", id=",".join(ids))
+                .execute()
+            )
+            title_by_id = {
+                it["id"]: it.get("snippet", {}).get("title") for it in meta.get("items", [])
+            }
+            for r in top_videos:
+                r["title"] = title_by_id.get(r.get("video"))
+        except Exception:
+            pass
+
+    # 4. Traffic sources and 5. Top countries.
+    traffic = _rows_as_dicts(
+        _query("views", dimensions="insightTrafficSourceType", sort="-views")
+    )
+    countries = _rows_as_dicts(
+        _query("views", dimensions="country", sort="-views", max_results=10)
+    )
+
+    return {
+        "channel": "authorized channel (owner analytics)",
+        "period": {"start": start_s, "end": end_s, "days": days},
+        "totals": totals,
+        "daily_trend": daily,
+        "top_videos": top_videos,
+        "traffic_sources": traffic,
+        "top_countries": countries,
+        "note": "Read-only. Owner analytics via the YouTube Analytics API.",
+    }
+
+
 # ---------------------------------------------------------------------------
 # Write tools (full access). These modify your channel. Requires the write
 # scope on the token (see authorize_full_access.py). Credentials are never
