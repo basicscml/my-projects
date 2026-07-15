@@ -22,6 +22,10 @@ Legend:
 - Spend-by-store summary.
 - Stores with location pin + foreground "who's nearby" geofence check.
 - Restock suggestions from receipt history.
+- **Ingredient scan** (your idea): paste/scan a product's *ingredients list* →
+  each ingredient checked against a curated, sourced additive-risk dataset →
+  0–100 additive-focused score + per-ingredient flags with the source cited.
+  (Photo OCR of the label is the drop-in upgrade; see Phase 3 #6.)
 
 ---
 
@@ -60,14 +64,18 @@ These need nothing but the receipts we already parse. High value, low risk.
 
 ### 🟠 Phase 4 — food health & deals (external data)
 
-9. **Toxic-ingredient flags + Yuka-style health rating.** The honest path:
-   **Open Food Facts** — a free, open product database with ingredients,
-   additives, allergens, Nutri-Score and NOVA (processing) levels. Scan a
-   barcode (#5) → fetch the product → show a health score and flag concerning
-   additives/ingredients. (Yuka itself has no public API; Open Food Facts is the
-   open equivalent that powers this cleanly, no key required.)
-   - _Notes:_ some products won't be in the DB; we degrade to "unknown" honestly.
-     Health scoring should be transparent about its source, not a black box.
+9. **Toxic-ingredient flags + Yuka-style health rating.**
+   - ✅ **Done (v1):** the **Ingredient scan** reads the ingredients list itself
+     (your approach — works on any package, no barcode needed) and rates it from
+     a curated, sourced additive dataset.
+   - **Next (external data):** enrich from **Open Food Facts** — a free, open
+     product database with ingredients, additives, allergens, Nutri-Score and
+     NOVA levels — to cover far more ingredients than the bundled list, and to
+     add the *nutrition* half of the score (Yuka is ~60% nutrition + 30%
+     additives + 10% organic). Barcode scan (#5) becomes an optional second way
+     in. (Yuka itself has no public API; Open Food Facts is the open equivalent.)
+   - _Notes:_ unmatched ingredients degrade to "not in dataset", never "safe".
+     Scoring stays transparent about its source — no black box.
 10. **Weekly circulars / deals.** Pull store weekly ads and match them to your
     list and usual buys. This is the **lowest-confidence** item: there's no clean
     free/official circular API. Options — a data provider (e.g. Flipp-style

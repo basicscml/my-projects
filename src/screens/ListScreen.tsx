@@ -53,9 +53,14 @@ export function ListScreen() {
       >
         <View style={styles.titleRow}>
           <Text style={[styles.title, { color: theme.text }]}>Shopping list</Text>
-          <Pressable onPress={() => navigation.navigate('Stores')}>
-            <Text style={[styles.link, { color: theme.primary }]}>Stores</Text>
-          </Pressable>
+          <View style={styles.headerLinks}>
+            <Pressable onPress={() => navigation.navigate('IngredientScan')}>
+              <Text style={[styles.link, { color: theme.primary }]}>🔬 Scan</Text>
+            </Pressable>
+            <Pressable onPress={() => navigation.navigate('Stores')}>
+              <Text style={[styles.link, { color: theme.primary }]}>Stores</Text>
+            </Pressable>
+          </View>
         </View>
 
         {/* Add box */}
@@ -212,6 +217,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: { fontSize: 30, fontWeight: '800' },
+  headerLinks: { flexDirection: 'row', gap: 16 },
   link: { fontWeight: '700', fontSize: 15 },
   addRow: { flexDirection: 'row', gap: 10, marginBottom: 18 },
   input: {
