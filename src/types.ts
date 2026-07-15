@@ -1,3 +1,7 @@
+// ---------------------------------------------------------------------------
+// Routines (daily reminders)
+// ---------------------------------------------------------------------------
+
 export type Step = {
   id: string;
   text: string;
@@ -29,4 +33,63 @@ export type Completions = {
   [dateKey: string]: {
     [routineId: string]: string[];
   };
+};
+
+// ---------------------------------------------------------------------------
+// Shopping (stores, list, receipts)
+// ---------------------------------------------------------------------------
+
+export type Coord = {
+  latitude: number;
+  longitude: number;
+};
+
+/**
+ * A place you shop. If it has a location + geofence, the app can nudge you
+ * with your list / restock suggestions when you arrive, and auto-tag receipts.
+ */
+export type Store = {
+  id: string;
+  name: string;
+  emoji: string;
+  color: string;
+  location: Coord | null;
+  /** Geofence radius in meters. */
+  radius: number;
+  geofenceEnabled: boolean;
+  /** What to do when you arrive. */
+  remindList: boolean;
+  suggestRestock: boolean;
+};
+
+export type ShoppingItem = {
+  id: string;
+  name: string;
+  qty: number;
+  checked: boolean;
+  /** Optional store this item is meant for. */
+  storeId: string | null;
+  /** Where the item came from — helps explain suggestions. */
+  source: 'manual' | 'suggestion';
+};
+
+export type ReceiptItem = {
+  id: string;
+  name: string;
+  price: number;
+  qty: number;
+};
+
+/**
+ * A parsed (or manually entered) receipt. `storeId` links it to a saved store
+ * for spend-by-store; `dateKey` is "YYYY-MM-DD" for time grouping.
+ */
+export type Receipt = {
+  id: string;
+  storeName: string;
+  storeId: string | null;
+  dateKey: string;
+  total: number;
+  items: ReceiptItem[];
+  source: 'parsed' | 'manual';
 };

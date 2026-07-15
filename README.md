@@ -1,24 +1,24 @@
-# FocusFlow
+# Homebase
 
-A calm, ADHD-friendly **routines & reminders** app for iOS and Android. Built with React Native + Expo.
+A calm personal app for **daily routines + food shopping**, built with React Native + Expo (iOS & Android, from one codebase). Everything is stored **on-device** and works offline — no accounts, no setup.
 
-FocusFlow helps you get through recurring routines (morning start, meds, wind-down) without the overwhelm — one small step at a time, with gentle daily reminders.
+Two sides, one shared reminder/geofence engine:
 
-## Why it's built for ADHD
+## 🗓 Routines & reminders
+- **Today** — the routines scheduled for today, each with a progress ring.
+- **Runner** — one step at a time with a big check-off button (easy to start, hard to freeze on).
+- **Routines** — create/edit routines: name, emoji, color, repeat days, reminder time, steps.
+- A daily local notification at the time you choose, only on the days a routine runs.
 
-- **One step at a time.** The runner shows a single "Do this now" step with a big button, instead of a wall-of-text checklist that's easy to freeze on.
-- **Visible progress.** Progress rings on every routine turn "I did some of it" into a clear, rewarding signal.
-- **Low stimulation.** Soft palette, few colors, one primary action per screen. Light and dark mode.
-- **Gentle reminders.** A daily local notification at the time you choose, only on the days a routine runs.
-- **No accounts, no setup.** Everything is stored on-device and works offline.
+## 🛒 Food shopping
+- **Shopping list** — quick add, merge duplicates, check off, restock chips from your history.
+- **Receipt reader** — turn a receipt's text into structured items + store + date + total, review/edit, and save it. (On-device photo OCR is the next drop-in — see the roadmap.)
+- **Receipts** — history + spend-by-store summary.
+- **Stores** — pin a store's location and geofence it. A foreground "who's nearby?" check nudges you with your list + restock picks when you arrive.
 
-## Features
-
-- **Today** — the routines scheduled for today, each with a progress ring; tap to run one.
-- **Runner** — step-by-step flow with a focused "current step" card and an optional full checklist.
-- **Routines** — create/edit routines: name, emoji, color, repeat days, reminder time, and steps.
-- **Reminders** — one local notification per repeat day at the routine's time (toggle per routine).
-- Comes with three starter routines on first launch.
+See **[ROADMAP.md](./ROADMAP.md)** for what's next — per-oz price comparison, an
+inflation tracker built from your own receipts, barcode-based food health
+ratings (via Open Food Facts), calendar sync, weekly circulars, and more.
 
 ## Running it
 
@@ -27,44 +27,38 @@ npm install
 npx expo start
 ```
 
-Then:
+Then press `i` (iOS simulator), `a` (Android emulator), or scan the QR code with **Expo Go**.
 
-- Press `i` for the iOS simulator, `a` for an Android emulator, or
-- Scan the QR code with the **Expo Go** app on your phone.
-
-> Local notifications work in Expo Go on iOS/Android. For the most reliable
-> scheduled reminders (and to ship to the stores), build a dev/production
-> client with EAS: `npx eas build`.
+> Local notifications, image picking, and foreground location work in Expo Go.
+> Background geofencing and on-device OCR need a custom dev build
+> (`npx eas build`) — see the roadmap.
 
 ## Project layout
 
 ```
-App.tsx                     App entry: providers + navigation
+App.tsx                     Providers (Routines + Shopping) + navigation
 index.ts                    Expo root registration
 src/
-  types.ts                  Routine / Step / Completions models
-  theme.ts                  Light + dark palette, useTheme()
+  types.ts                  Routine / Store / ShoppingItem / Receipt models
+  theme.ts                  Light + dark palette
   store/
-    RoutinesContext.tsx     Central state + persistence + scheduling
+    RoutinesContext.tsx     Routines state + persistence + scheduling
+    ShoppingContext.tsx     Stores / list / receipts + geofence check
     storage.ts              AsyncStorage read/write
-    seed.ts                 Starter routines
+    seed.ts                 Starter data + sample receipt
   utils/
-    dates.ts                Weekday / date-key / formatting helpers
-    notifications.ts        expo-notifications scheduling
-    id.ts                   Local id generation
-  navigation/               Tabs + stack
+    receiptParser.ts        Text → structured receipt (the "reader")
+    suggestions.ts          Restock suggestions + spend-by-store
+    location.ts             Foreground location + arrival notifications
+    geo.ts / dates.ts / money.ts / id.ts / notifications.ts
+  navigation/               Tabs (Today · List · Receipts · Routines) + stack
   components/               ProgressRing, DayPicker, TimePicker
-  screens/                  Today, Routines, RoutineEditor, RoutineRunner
+  screens/                  Today, List, Receipts, ScanReceipt, ReceiptDetail,
+                            Stores, StoreEditor, Routines, RoutineEditor, Runner
 ```
 
 ## Data & privacy
 
-All data lives on the device via `AsyncStorage`. Nothing is sent anywhere.
-Cloud sync and accounts can be added later without changing the UI.
-
-## Roadmap ideas
-
-- Streaks / habit history
-- Focus timer (Pomodoro) inside the runner
-- Reorder steps by drag
-- Cloud sync across devices
+All data lives on the device via `AsyncStorage`. Nothing leaves your phone in v1.
+The first outbound calls arrive in Phase 4 (food health lookups) — opt-in, with
+the data source shown.

@@ -12,6 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme } from '../theme';
 import { useRoutines } from '../store/RoutinesContext';
+import { useShopping } from '../store/ShoppingContext';
 import { ProgressRing } from '../components/ProgressRing';
 import { RootStackParamList } from '../navigation/types';
 import {
@@ -27,6 +28,7 @@ export function TodayScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
   const { ready, routinesForDay, completedSteps } = useRoutines();
+  const { activeCount, checkNearby } = useShopping();
 
   const weekday = todayWeekday();
   const today = routinesForDay(weekday).sort((a, b) =>
@@ -94,6 +96,46 @@ export function TodayScreen() {
           </View>
         </View>
       )}
+
+      {/* Shopping at a glance */}
+      <View
+        style={[
+          styles.shopCard,
+          { backgroundColor: theme.card, borderColor: theme.border },
+        ]}
+      >
+        <Pressable
+          style={styles.shopMain}
+          onPress={() => navigation.navigate('Tabs', { screen: 'List' } as never)}
+        >
+          <Text style={styles.shopEmoji}>🛒</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.cardTitle, { color: theme.text }]}>
+              Shopping list
+            </Text>
+            <Text style={[styles.cardSub, { color: theme.textMuted }]}>
+              {activeCount === 0
+                ? 'Nothing to buy right now'
+                : `${activeCount} item${activeCount === 1 ? '' : 's'} to buy`}
+            </Text>
+          </View>
+        </Pressable>
+        <Pressable
+          onPress={() => checkNearby()}
+          style={[styles.nearbyBtn, { borderColor: theme.primary }]}
+        >
+          <Text style={{ color: theme.primary, fontWeight: '700', fontSize: 13 }}>
+            📍 Nearby
+          </Text>
+        </Pressable>
+      </View>
+
+      {/* Routines */}
+      {totalCount > 0 || (ready && today.length > 0) ? (
+        <Text style={[styles.sectionHeading, { color: theme.textMuted }]}>
+          TODAY’S ROUTINES
+        </Text>
+      ) : null}
 
       {!ready ? null : today.length === 0 ? (
         <EmptyToday />
@@ -182,6 +224,28 @@ const styles = StyleSheet.create({
   },
   summaryBig: { fontSize: 17, fontWeight: '700' },
   summarySub: { fontSize: 13, marginTop: 3 },
+  shopCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: 18,
+    borderWidth: 1,
+    marginBottom: 20,
+  },
+  shopMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  shopEmoji: { fontSize: 26 },
+  nearbyBtn: {
+    borderWidth: 1.5,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  sectionHeading: {
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    marginBottom: 12,
+  },
   card: {
     flexDirection: 'row',
     alignItems: 'center',

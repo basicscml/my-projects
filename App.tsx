@@ -8,6 +8,7 @@ import {
   DarkTheme,
 } from '@react-navigation/native';
 import { RoutinesProvider } from './src/store/RoutinesContext';
+import { ShoppingProvider } from './src/store/ShoppingContext';
 import { RootNavigator } from './src/navigation/RootNavigator';
 
 export default function App() {
@@ -17,10 +18,12 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <RoutinesProvider>
-        <NavigationContainer theme={navTheme}>
-          <RootNavigator />
-        </NavigationContainer>
-        <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+        <ShoppingProvider>
+          <NavigationContainer theme={navTheme}>
+            <RootNavigator />
+          </NavigationContainer>
+          <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+        </ShoppingProvider>
       </RoutinesProvider>
     </SafeAreaProvider>
   );
