@@ -8,6 +8,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -15,8 +16,8 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme } from '../theme';
 import { useShopping } from '../store/ShoppingContext';
 import { RootStackParamList } from '../navigation/types';
-import { restockSuggestions } from '../utils/suggestions';
-import { money } from '../utils/money';
+import { buildPantry, recentlyBought, runningLow } from '../utils/pantry';
+import { dateKey } from '../utils/dates';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -30,16 +31,38 @@ export function ListScreen() {
 
   const active = list.filter((i) => !i.checked);
   const done = list.filter((i) => i.checked);
+  const today = dateKey();
 
-  const suggestions = useMemo(
-    () => restockSuggestions(receipts, list.map((i) => i.name), 6),
-    [receipts, list]
-  );
+  // Predicted "running low" from receipts, minus what's already on the list.
+  const lowItems = useMemo(() => {
+    const onList = new Set(active.map((i) => i.name.toLowerCase()));
+    return runningLow(buildPantry(receipts, today))
+      .filter((e) => !onList.has(e.name.toLowerCase()))
+      .slice(0, 8);
+  }, [receipts, active, today]);
+
+  const commitAdd = (name: string) => {
+    addItem(name);
+    setDraft('');
+  };
 
   const submit = () => {
-    if (!draft.trim()) return;
-    addItem(draft);
-    setDraft('');
+    const name = draft.trim();
+    if (!name) return;
+    // "Did I already buy this?" — catch accidental re-buys.
+    const boughtOn = recentlyBought(receipts, name, 4, today);
+    if (boughtOn) {
+      Alert.alert(
+        'Already bought?',
+        `You bought ${name} on ${boughtOn}. Add it to the list anyway?`,
+        [
+          { text: 'Skip', style: 'cancel', onPress: () => setDraft('') },
+          { text: 'Add anyway', onPress: () => commitAdd(name) },
+        ]
+      );
+      return;
+    }
+    commitAdd(name);
   };
 
   return (
@@ -54,6 +77,9 @@ export function ListScreen() {
         <View style={styles.titleRow}>
           <Text style={[styles.title, { color: theme.text }]}>Shopping list</Text>
           <View style={styles.headerLinks}>
+            <Pressable onPress={() => navigation.navigate('Pantry')}>
+              <Text style={[styles.link, { color: theme.primary }]}>Pantry</Text>
+            </Pressable>
             <Pressable onPress={() => navigation.navigate('IngredientScan')}>
               <Text style={[styles.link, { color: theme.primary }]}>🔬 Scan</Text>
             </Pressable>
@@ -103,27 +129,37 @@ export function ListScreen() {
           />
         ))}
 
-        {/* Suggestions */}
-        {suggestions.length > 0 && (
+        {/* Running low — predicted from receipts */}
+        {lowItems.length > 0 && (
           <View style={{ marginTop: 22 }}>
-            <Text style={[styles.section, { color: theme.textMuted }]}>
-              RESTOCK — from your receipts
-            </Text>
+            <View style={styles.section2}>
+              <Text style={[styles.section, { color: theme.textMuted }]}>
+                RUNNING LOW — predicted
+              </Text>
+              <Pressable onPress={() => navigation.navigate('Pantry')}>
+                <Text style={[styles.link, { color: theme.primary }]}>Pantry →</Text>
+              </Pressable>
+            </View>
             <View style={styles.chips}>
-              {suggestions.map((s) => (
+              {lowItems.map((s) => (
                 <Pressable
                   key={s.name}
                   onPress={() => addItem(s.name)}
                   style={[
                     styles.chip,
-                    { backgroundColor: theme.card, borderColor: theme.border },
+                    {
+                      backgroundColor: theme.card,
+                      borderColor: s.status === 'low' ? theme.danger : theme.border,
+                    },
                   ]}
                 >
                   <Text style={[styles.chipText, { color: theme.text }]}>
                     ＋ {s.name}
                   </Text>
                   <Text style={[styles.chipMeta, { color: theme.textMuted }]}>
-                    {s.timesBought}× · ~{money(s.avgPrice)}
+                    {s.status === 'low'
+                      ? 'likely out'
+                      : `~${s.daysLeft}d left`}
                   </Text>
                 </Pressable>
               ))}

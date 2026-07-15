@@ -45,3 +45,24 @@ export function formatDays(days: number[]): string {
   if (isWeekend) return 'Weekends';
   return sorted.map((d) => WEEKDAYS[d]).join(', ');
 }
+
+/** Parse a "YYYY-MM-DD" key into a local Date. */
+export function parseDateKey(key: string): Date {
+  const [y, m, d] = key.split('-').map(Number);
+  return new Date(y, (m || 1) - 1, d || 1);
+}
+
+/** Whole days from key `a` to key `b` (b - a). */
+export function daysBetween(a: string, b: string): number {
+  const ms = parseDateKey(b).getTime() - parseDateKey(a).getTime();
+  return Math.round(ms / 86_400_000);
+}
+
+/** Friendly relative day, e.g. "today", "3 days ago", "in 2 days". */
+export function relativeDays(days: number): string {
+  if (days === 0) return 'today';
+  if (days === 1) return 'yesterday';
+  if (days === -1) return 'tomorrow';
+  if (days > 0) return `${days} days ago`;
+  return `in ${Math.abs(days)} days`;
+}

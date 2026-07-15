@@ -13,6 +13,31 @@ Legend:
 
 ---
 
+## Guiding thesis — a second brain for the boring-but-hard stuff
+
+The app exists to offload the executive-function jobs an ADHD brain finds
+expensive. Four "taxes", each paid by a feature:
+
+| ADHD tax | Feature that pays it |
+|---|---|
+| **Starting** (task paralysis) | one-step runner, tiny first steps, "2-minute" mode |
+| **Remembering** (working memory) | list, receipts, **self-stocking pantry**, "did I already buy this?" |
+| **Time/context blindness** | geofence + timed nudges, learned shopping days |
+| **Deciding** (choice overload) | ingredient scan → one score instead of a wall of text |
+
+**Design laws** (so it doesn't become another abandoned ADHD system):
+1. **Self-maintaining.** Feed off things the user already does (scanning
+   receipts, walking into stores) — never manual upkeep.
+2. **Reduce, don't add.** Every feature removes a decision or a memory.
+3. **Externalize state.** Make the invisible (pantry level, time, spend) visible.
+4. **Forgiving, never shaming.** Missed days vanish quietly; reward follow-through
+   (and restraint), never guilt.
+
+**Open question — one app or two?** Undecided, and deliberately so: the shared
+receipt→pantry/spend engine is the same either way. Current lean: **one app,
+kept modular**, with the **food-health scanner** as the piece most able to spin
+off into its own (mainstream, non-ADHD) app later.
+
 ## Shipped (v1 foundation)
 
 - Routines & reminders (daily local notifications, step-by-step runner).
@@ -26,6 +51,10 @@ Legend:
   each ingredient checked against a curated, sourced additive-risk dataset →
   0–100 additive-focused score + per-ingredient flags with the source cited.
   (Photo OCR of the label is the drop-in upgrade; see Phase 3 #6.)
+- **Self-stocking pantry** (the "forgetting/running out" tax): learns each
+  item's rebuy interval from receipts and predicts when you'll run out — no
+  manual inventory. Surfaces "running low" on the list, plus a "did I already
+  buy this?" guard when you add something you bought in the last few days.
 
 ---
 
