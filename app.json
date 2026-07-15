@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "FocusFlow",
+    "slug": "focusflow",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "scheme": "focusflow",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#5B4B8A"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.focusflow.app",
+      "infoPlist": {
+        "UIBackgroundModes": ["remote-notification"]
+      }
+    },
+    "android": {
+      "package": "com.focusflow.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#5B4B8A"
+      }
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "color": "#5B4B8A"
+        }
+      ]
+    ]
+  }
+}
