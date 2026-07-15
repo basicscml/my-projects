@@ -6,12 +6,14 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { Receipt, ShoppingItem, Store } from '../types';
+import { ProductHealth, Receipt, ShoppingItem, Store } from '../types';
 import {
   loadList,
+  loadProductHealth,
   loadReceipts,
   loadStores,
   saveList,
+  saveProductHealth,
   saveReceipts,
   saveStores,
 } from './storage';
@@ -42,6 +44,10 @@ type Ctx = {
   addReceipt: (receipt: Receipt) => void;
   deleteReceipt: (id: string) => void;
 
+  // product health (from the ingredient scanner)
+  productHealth: ProductHealth;
+  setProductHealth: (name: string, score: number, grade: string) => void;
+
   // geofence (foreground)
   checkNearby: () => Promise<NearbyHit[]>;
 };
@@ -53,14 +59,17 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
   const [stores, setStores] = useState<Store[]>([]);
   const [list, setList] = useState<ShoppingItem[]>([]);
   const [receipts, setReceipts] = useState<Receipt[]>([]);
+  const [productHealth, setProductHealthState] = useState<ProductHealth>({});
 
   useEffect(() => {
     (async () => {
-      const [loadedStores, loadedList, loadedReceipts] = await Promise.all([
+      const [loadedStores, loadedList, loadedReceipts, loadedHealth] = await Promise.all([
         loadStores(),
         loadList(),
         loadReceipts(),
+        loadProductHealth(),
       ]);
+      setProductHealthState(loadedHealth);
 
       if (loadedStores) {
         setStores(loadedStores);
@@ -174,6 +183,22 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
     [stores, persistStores]
   );
 
+  const setProductHealth = useCallback(
+    (name: string, score: number, grade: string) => {
+      const key = name.toLowerCase().trim();
+      if (!key) return;
+      setProductHealthState((prev) => {
+        const next: ProductHealth = {
+          ...prev,
+          [key]: { score, grade, dateKey: dateKey() },
+        };
+        saveProductHealth(next);
+        return next;
+      });
+    },
+    []
+  );
+
   const addReceipt = useCallback(
     (receipt: Receipt) => persistReceipts([receipt, ...receipts]),
     [receipts, persistReceipts]
@@ -215,6 +240,8 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
       deleteStore,
       addReceipt,
       deleteReceipt,
+      productHealth,
+      setProductHealth,
       checkNearby,
     }),
     [
@@ -232,6 +259,8 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
       deleteStore,
       addReceipt,
       deleteReceipt,
+      productHealth,
+      setProductHealth,
       checkNearby,
     ]
   );

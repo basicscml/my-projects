@@ -55,6 +55,15 @@ off into its own (mainstream, non-ADHD) app later.
   item's rebuy interval from receipts and predicts when you'll run out — no
   manual inventory. Surfaces "running low" on the list, plus a "did I already
   buy this?" guard when you add something you bought in the last few days.
+- **Price intelligence / Compare** (per-oz + cross-store value + health):
+  - **Per-oz / per-unit pricing** — parses sizes ("64 fl oz", "1 lb", "12 ct",
+    "1/4 lb") and normalizes to $/oz, $/fl oz, or $/each.
+  - **Cross-store comparison** — groups the same item across stores, shows where
+    it's cheapest per unit and the % you'd save, with full price history.
+  - **Health + cost weighing** — attach an ingredient-scan score to a product,
+    then a plain-language verdict weighs health against price ("cheaper
+    elsewhere, but check the ingredients" / "great value — healthy and cheaper").
+  - Sort everything by best savings, cheapest/oz, or healthiest.
 
 ---
 

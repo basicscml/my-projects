@@ -282,6 +282,16 @@ export function ScanReceiptScreen() {
               ]}
             />
             <TextInput
+              value={item.size ?? ''}
+              onChangeText={(t) => setItem(item.id, { size: t })}
+              placeholder="size"
+              placeholderTextColor={theme.textMuted}
+              style={[
+                styles.sizeInput,
+                { backgroundColor: theme.card, color: theme.text, borderColor: theme.border },
+              ]}
+            />
+            <TextInput
               value={item.price ? String(item.price) : ''}
               onChangeText={(t) => setItem(item.id, { price: parsePrice(t) ?? 0 })}
               placeholder="0.00"
@@ -297,6 +307,10 @@ export function ScanReceiptScreen() {
             </Pressable>
           </View>
         ))}
+        <Text style={[styles.sizeHint, { color: theme.textMuted }]}>
+          Add a size (e.g. “64 fl oz”, “1 lb”, “12 ct”) to unlock per-oz price
+          comparison across stores.
+        </Text>
         <Pressable onPress={addItemRow} style={[styles.addStep, { borderColor: theme.border }]}>
           <Text style={{ color: theme.primary, fontWeight: '700' }}>＋ Add item</Text>
         </Pressable>
@@ -386,16 +400,26 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 16,
   },
-  itemRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  priceInput: {
-    width: 84,
+  itemRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
+  sizeInput: {
+    width: 62,
     borderWidth: 1,
     borderRadius: 12,
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  priceInput: {
+    width: 72,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 10,
     paddingVertical: 12,
     fontSize: 16,
     textAlign: 'right',
   },
+  sizeHint: { fontSize: 12, lineHeight: 17, marginTop: 2 },
   remove: { paddingHorizontal: 2 },
   addStep: {
     borderWidth: 1,

@@ -7,6 +7,7 @@ import { useTheme } from '../theme';
 import { useShopping } from '../store/ShoppingContext';
 import { RootStackParamList } from '../navigation/types';
 import { money } from '../utils/money';
+import { parseSize, unitPrice, formatUnitPrice } from '../utils/units';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 type Rt = RouteProp<RootStackParamList, 'ReceiptDetail'>;
@@ -64,10 +65,22 @@ export function ReceiptDetailScreen() {
               { borderTopWidth: i === 0 ? 0 : StyleSheet.hairlineWidth, borderTopColor: theme.border },
             ]}
           >
-            <Text style={[styles.itemName, { color: theme.text }]}>
-              {item.qty > 1 ? `${item.qty}× ` : ''}
-              {item.name}
-            </Text>
+            <View style={{ flex: 1, paddingRight: 12 }}>
+              <Text style={[styles.itemName, { color: theme.text }]}>
+                {item.qty > 1 ? `${item.qty}× ` : ''}
+                {item.name}
+              </Text>
+              {(() => {
+                const size = parseSize(item.size ?? '') ?? parseSize(item.name);
+                if (!size) return null;
+                const up = unitPrice(item.price, item.qty, size);
+                return (
+                  <Text style={[styles.unit, { color: theme.textMuted }]}>
+                    {item.size ?? size.display} · {formatUnitPrice(up)}
+                  </Text>
+                );
+              })()}
+            </View>
             <View style={styles.itemRight}>
               <Text style={[styles.itemPrice, { color: theme.text }]}>
                 {money(item.price)}
@@ -104,7 +117,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 14,
   },
-  itemName: { fontSize: 16, fontWeight: '600', flex: 1, paddingRight: 12 },
+  itemName: { fontSize: 16, fontWeight: '600' },
+  unit: { fontSize: 12, marginTop: 2 },
   itemRight: { alignItems: 'flex-end', gap: 2 },
   itemPrice: { fontSize: 16, fontWeight: '700' },
   reAdd: { fontSize: 12, fontWeight: '700' },

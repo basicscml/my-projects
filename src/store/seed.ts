@@ -100,11 +100,11 @@ export function seedReceipts(recentKey: string, olderKey: string): Receipt[] {
       total: 24.36,
       source: 'parsed',
       items: [
-        { id: uid(), name: 'Bananas', price: 1.29, qty: 1 },
-        { id: uid(), name: 'Oat Milk', price: 3.99, qty: 2 },
-        { id: uid(), name: 'Eggs', price: 4.49, qty: 1 },
-        { id: uid(), name: 'Chicken Breast', price: 8.6, qty: 1 },
-        { id: uid(), name: 'Spinach', price: 2.0, qty: 1 },
+        { id: uid(), name: 'Bananas', price: 1.29, qty: 1, size: '2 lb' },
+        { id: uid(), name: 'Oat Milk', price: 3.99, qty: 2, size: '64 fl oz' },
+        { id: uid(), name: 'Eggs', price: 4.49, qty: 1, size: '12 ct' },
+        { id: uid(), name: 'Chicken Breast', price: 8.6, qty: 1, size: '1 lb' },
+        { id: uid(), name: 'Spinach', price: 2.0, qty: 1, size: '5 oz' },
       ],
     },
     {
@@ -115,10 +115,25 @@ export function seedReceipts(recentKey: string, olderKey: string): Receipt[] {
       total: 18.72,
       source: 'parsed',
       items: [
-        { id: uid(), name: 'Bananas', price: 1.35, qty: 1 },
-        { id: uid(), name: 'Oat Milk', price: 3.89, qty: 1 },
-        { id: uid(), name: 'Coffee Beans', price: 9.99, qty: 1 },
-        { id: uid(), name: 'Eggs', price: 3.49, qty: 1 },
+        { id: uid(), name: 'Bananas', price: 1.35, qty: 1, size: '2 lb' },
+        { id: uid(), name: 'Oat Milk', price: 3.89, qty: 1, size: '64 fl oz' },
+        { id: uid(), name: 'Coffee Beans', price: 9.99, qty: 1, size: '12 oz' },
+        { id: uid(), name: 'Eggs', price: 3.49, qty: 1, size: '12 ct' },
+      ],
+    },
+    {
+      // A second store so cross-store value comparison has something to compare.
+      id: uid(),
+      storeName: 'Farmers Market',
+      storeId: null,
+      dateKey: olderKey,
+      total: 21.4,
+      source: 'parsed',
+      items: [
+        { id: uid(), name: 'Bananas', price: 1.6, qty: 1, size: '2 lb' },
+        { id: uid(), name: 'Oat Milk', price: 4.5, qty: 1, size: '32 fl oz' },
+        { id: uid(), name: 'Eggs', price: 6.0, qty: 1, size: '12 ct' },
+        { id: uid(), name: 'Chicken Breast', price: 7.2, qty: 1, size: '1 lb' },
       ],
     },
   ];

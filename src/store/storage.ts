@@ -1,11 +1,19 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Completions, Receipt, Routine, ShoppingItem, Store } from '../types';
+import {
+  Completions,
+  ProductHealth,
+  Receipt,
+  Routine,
+  ShoppingItem,
+  Store,
+} from '../types';
 
 const ROUTINES_KEY = 'homebase.routines.v1';
 const COMPLETIONS_KEY = 'homebase.completions.v1';
 const STORES_KEY = 'homebase.stores.v1';
 const LIST_KEY = 'homebase.list.v1';
 const RECEIPTS_KEY = 'homebase.receipts.v1';
+const HEALTH_KEY = 'homebase.productHealth.v1';
 
 async function readJSON<T>(key: string, fallback: T): Promise<T> {
   const raw = await AsyncStorage.getItem(key);
@@ -72,4 +80,12 @@ export async function loadReceipts(): Promise<Receipt[]> {
 
 export async function saveReceipts(receipts: Receipt[]): Promise<void> {
   await AsyncStorage.setItem(RECEIPTS_KEY, JSON.stringify(receipts));
+}
+
+export async function loadProductHealth(): Promise<ProductHealth> {
+  return readJSON<ProductHealth>(HEALTH_KEY, {});
+}
+
+export async function saveProductHealth(h: ProductHealth): Promise<void> {
+  await AsyncStorage.setItem(HEALTH_KEY, JSON.stringify(h));
 }

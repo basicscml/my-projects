@@ -78,6 +78,20 @@ export type ReceiptItem = {
   name: string;
   price: number;
   qty: number;
+  /** Optional per-unit size text, e.g. "64 fl oz", "1 lb", "12 ct". */
+  size?: string;
+};
+
+/**
+ * A saved health rating for a product (by normalized name), captured from the
+ * ingredient scanner. Lets the price comparison weigh health against cost.
+ */
+export type ProductHealth = {
+  [nameLower: string]: {
+    score: number;
+    grade: string;
+    dateKey: string;
+  };
 };
 
 /**

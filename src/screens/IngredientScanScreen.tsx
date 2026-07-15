@@ -16,6 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../theme';
+import { useShopping } from '../store/ShoppingContext';
 import { RootStackParamList } from '../navigation/types';
 import { ProgressRing } from '../components/ProgressRing';
 import {
@@ -33,9 +34,12 @@ export function IngredientScanScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
 
+  const { setProductHealth } = useShopping();
   const [raw, setRaw] = useState('');
+  const [productName, setProductName] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [result, setResult] = useState<IngredientAnalysis | null>(null);
+  const [saved, setSaved] = useState(false);
 
   useLayoutEffect(() => {
     navigation.setOptions({ title: 'Ingredient scan' });
@@ -87,6 +91,18 @@ export function IngredientScanScreen() {
             {imageUri && (
               <Image source={{ uri: imageUri }} style={styles.preview} resizeMode="cover" />
             )}
+
+            <Text style={[styles.label, { color: theme.textMuted }]}>PRODUCT NAME (OPTIONAL)</Text>
+            <TextInput
+              value={productName}
+              onChangeText={setProductName}
+              placeholder="e.g. Oat Milk — links the score to this product"
+              placeholderTextColor={theme.textMuted}
+              style={[
+                styles.nameInput,
+                { backgroundColor: theme.card, color: theme.text, borderColor: theme.border },
+              ]}
+            />
 
             <Text style={[styles.label, { color: theme.textMuted }]}>INGREDIENTS TEXT</Text>
             <TextInput
@@ -189,15 +205,41 @@ export function IngredientScanScreen() {
               );
             })}
 
+            {productName.trim() ? (
+              <Pressable
+                onPress={() => {
+                  setProductHealth(productName, result.score, result.grade);
+                  setSaved(true);
+                }}
+                disabled={saved}
+                style={[
+                  styles.primary,
+                  { backgroundColor: saved ? theme.accent : theme.primary },
+                ]}
+              >
+                <Text style={styles.primaryText}>
+                  {saved ? `✓ Saved to ${productName.trim()}` : `Save score to “${productName.trim()}”`}
+                </Text>
+              </Pressable>
+            ) : (
+              <Text style={[styles.disclaimer, { color: theme.textMuted, marginTop: 20 }]}>
+                Tip: add a product name (above) before scanning to save this
+                score against that product — then Compare can weigh its health
+                against price.
+              </Text>
+            )}
+
             <Pressable
               onPress={() => {
                 setResult(null);
                 setImageUri(null);
                 setRaw('');
+                setProductName('');
+                setSaved(false);
               }}
-              style={[styles.primary, { backgroundColor: theme.primary }]}
+              style={styles.secondary}
             >
-              <Text style={styles.primaryText}>Scan another</Text>
+              <Text style={[styles.secondaryText, { color: theme.textMuted }]}>Scan another</Text>
             </Pressable>
           </>
         )}
@@ -233,6 +275,13 @@ const styles = StyleSheet.create({
   captureText: { fontWeight: '700', fontSize: 15 },
   preview: { width: '100%', height: 160, borderRadius: 14, marginBottom: 8 },
   label: { fontSize: 12, fontWeight: '800', letterSpacing: 0.5, marginTop: 14, marginBottom: 8 },
+  nameInput: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
+  },
   textArea: {
     borderWidth: 1,
     borderRadius: 12,

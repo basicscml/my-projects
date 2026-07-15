@@ -29,7 +29,17 @@ export function ReceiptsScreen() {
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 96 }}
       >
-        <Text style={[styles.title, { color: theme.text }]}>Receipts</Text>
+        <View style={styles.titleRow}>
+          <Text style={[styles.title, { color: theme.text }]}>Receipts</Text>
+          <View style={styles.headerLinks}>
+            <Pressable onPress={() => navigation.navigate('Compare')}>
+              <Text style={[styles.link, { color: theme.primary }]}>Compare</Text>
+            </Pressable>
+            <Pressable onPress={() => navigation.navigate('Stores')}>
+              <Text style={[styles.link, { color: theme.primary }]}>Stores</Text>
+            </Pressable>
+          </View>
+        </View>
 
         {/* Spend summary */}
         {receipts.length > 0 && (
@@ -134,7 +144,15 @@ export function ReceiptsScreen() {
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: 30, fontWeight: '800', marginBottom: 16 },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  headerLinks: { flexDirection: 'row', gap: 16 },
+  link: { fontWeight: '700', fontSize: 15 },
+  title: { fontSize: 30, fontWeight: '800' },
   summary: { borderWidth: 1, borderRadius: 18, padding: 18, marginBottom: 20 },
   summaryLabel: { fontSize: 12, fontWeight: '800', letterSpacing: 0.5 },
   summaryTotal: { fontSize: 34, fontWeight: '800', marginTop: 4 },

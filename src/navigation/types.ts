@@ -8,6 +8,8 @@ export type RootStackParamList = {
   StoreEditor: { storeId?: string };
   IngredientScan: undefined;
   Pantry: undefined;
+  Compare: undefined;
+  CompareDetail: { name: string };
 };
 
 export type TabParamList = {

@@ -77,14 +77,14 @@ export function ListScreen() {
         <View style={styles.titleRow}>
           <Text style={[styles.title, { color: theme.text }]}>Shopping list</Text>
           <View style={styles.headerLinks}>
+            <Pressable onPress={() => navigation.navigate('Compare')}>
+              <Text style={[styles.link, { color: theme.primary }]}>Compare</Text>
+            </Pressable>
             <Pressable onPress={() => navigation.navigate('Pantry')}>
               <Text style={[styles.link, { color: theme.primary }]}>Pantry</Text>
             </Pressable>
             <Pressable onPress={() => navigation.navigate('IngredientScan')}>
-              <Text style={[styles.link, { color: theme.primary }]}>🔬 Scan</Text>
-            </Pressable>
-            <Pressable onPress={() => navigation.navigate('Stores')}>
-              <Text style={[styles.link, { color: theme.primary }]}>Stores</Text>
+              <Text style={[styles.link, { color: theme.primary }]}>🔬</Text>
             </Pressable>
           </View>
         </View>

@@ -1,6 +1,7 @@
 import { ReceiptItem } from '../types';
 import { uid } from './id';
 import { parsePrice } from './money';
+import { parseSize } from './units';
 
 export type ParsedReceipt = {
   storeName: string | null;
@@ -122,7 +123,14 @@ function detectItems(lines: string[]): ReceiptItem[] {
     }
     if (name.length < 2 || !/[a-z]/i.test(name)) continue;
 
-    items.push({ id: uid(), name: titleCase(name), price, qty });
+    const size = parseSize(name);
+    items.push({
+      id: uid(),
+      name: titleCase(name),
+      price,
+      qty,
+      ...(size ? { size: size.display } : {}),
+    });
   }
   return items;
 }

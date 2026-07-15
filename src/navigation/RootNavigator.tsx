@@ -16,6 +16,8 @@ import { StoresScreen } from '../screens/StoresScreen';
 import { StoreEditorScreen } from '../screens/StoreEditorScreen';
 import { IngredientScanScreen } from '../screens/IngredientScanScreen';
 import { PantryScreen } from '../screens/PantryScreen';
+import { CompareScreen } from '../screens/CompareScreen';
+import { CompareDetailScreen } from '../screens/CompareDetailScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -98,6 +100,12 @@ export function RootNavigator() {
         options={{ presentation: 'modal', title: 'Ingredient scan' }}
       />
       <Stack.Screen name="Pantry" component={PantryScreen} options={{ title: 'Pantry' }} />
+      <Stack.Screen name="Compare" component={CompareScreen} options={{ title: 'Compare' }} />
+      <Stack.Screen
+        name="CompareDetail"
+        component={CompareDetailScreen}
+        options={{ title: 'Compare' }}
+      />
     </Stack.Navigator>
   );
 }
