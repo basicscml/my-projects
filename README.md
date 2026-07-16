@@ -20,18 +20,39 @@ See **[ROADMAP.md](./ROADMAP.md)** for what's next — per-oz price comparison, 
 inflation tracker built from your own receipts, barcode-based food health
 ratings (via Open Food Facts), calendar sync, weekly circulars, and more.
 
-## Running it
+## Get the installable app (recommended)
+
+The camera OCR, barcode scanning, notifications, and geofencing need a real
+build (they can't run in Expo Go). One command produces an app you install on
+your phone — no Xcode/Android Studio needed, it builds in Expo's cloud:
 
 ```bash
 npm install
-npx expo start
+npm install -g eas-cli        # one time
+eas login                     # free Expo account
+eas build --profile preview --platform android   # or: --platform ios
 ```
 
-Then press `i` (iOS simulator), `a` (Android emulator), or scan the QR code with **Expo Go**.
+When the build finishes, EAS gives you a link/QR:
 
-> Local notifications, image picking, and foreground location work in Expo Go.
-> Background geofencing and on-device OCR need a custom dev build
-> (`npx eas build`) — see the roadmap.
+- **Android** → download the `.apk` and install it directly.
+- **iOS** → installs via the link (your device must be registered; EAS walks you
+  through it on first run). For the App Store, use `--profile production`.
+
+That build is the complete app — every feature on, on-device, offline-first.
+
+## Quick preview (partial)
+
+To poke at the UI without a full build:
+
+```bash
+npm install
+npx expo start   # scan the QR with Expo Go
+```
+
+Expo Go runs the screens, lists, receipts (paste), and Open Food Facts search,
+but **not** the camera OCR, barcode scanner, notifications, or geofencing — those
+require the build above.
 
 ## Project layout
 
