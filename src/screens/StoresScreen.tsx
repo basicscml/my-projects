@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, Alert, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useTheme } from '../theme';
+import { useTheme, routineColors } from '../theme';
 import { useShopping } from '../store/ShoppingContext';
 import { RootStackParamList } from '../navigation/types';
+import { searchPlaces, PlaceResult } from '../utils/places';
+import { getCurrentCoord } from '../utils/location';
+import { uid } from '../utils/id';
+import { Store } from '../types';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -13,8 +17,51 @@ export function StoresScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
-  const { stores, checkNearby } = useShopping();
+  const { stores, checkNearby, upsertStore } = useShopping();
   const [checking, setChecking] = useState(false);
+
+  const [findQuery, setFindQuery] = useState('');
+  const [finding, setFinding] = useState(false);
+  const [findError, setFindError] = useState<string | null>(null);
+  const [places, setPlaces] = useState<PlaceResult[]>([]);
+
+  const findStores = async () => {
+    const q = findQuery.trim();
+    if (!q) return;
+    setFinding(true);
+    setFindError(null);
+    setPlaces([]);
+    try {
+      const near = await getCurrentCoord();
+      const results = await searchPlaces(q, near);
+      setPlaces(results);
+      if (results.length === 0) setFindError('No places found for that search.');
+    } catch {
+      setFindError(
+        'Couldn’t reach the places service. This works on your phone’s network; the preview sandbox blocks external calls.'
+      );
+    } finally {
+      setFinding(false);
+    }
+  };
+
+  const addFavorite = (p: PlaceResult) => {
+    const store: Store = {
+      id: uid(),
+      name: p.name,
+      emoji: '🛒',
+      color: routineColors[1],
+      address: p.address,
+      location: p.coord,
+      radius: 201,
+      geofenceEnabled: true,
+      remindList: true,
+      suggestRestock: true,
+    };
+    upsertStore(store);
+    setPlaces((prev) => prev.filter((x) => x !== p));
+    Alert.alert('Added', `${p.name} is now a favorite store with a ⅛-mile geofence.`);
+  };
 
   const onCheckNearby = async () => {
     setChecking(true);
@@ -58,6 +105,42 @@ export function StoresScreen() {
           </Text>
         </Pressable>
 
+        {/* Find local stores to add as favorites */}
+        <Text style={[styles.section, { color: theme.textMuted }]}>FIND LOCAL STORES</Text>
+        <View style={styles.findRow}>
+          <TextInput
+            value={findQuery}
+            onChangeText={setFindQuery}
+            onSubmitEditing={findStores}
+            returnKeyType="search"
+            placeholder="e.g. Trader Joe’s, or supermarket"
+            placeholderTextColor={theme.textMuted}
+            style={[styles.input, { flex: 1, backgroundColor: theme.card, color: theme.text, borderColor: theme.border }]}
+          />
+          <Pressable
+            onPress={findStores}
+            disabled={finding || !findQuery.trim()}
+            style={[styles.findBtn, { backgroundColor: findQuery.trim() ? theme.primary : theme.border }]}
+          >
+            <Text style={styles.findBtnText}>{finding ? '…' : 'Find'}</Text>
+          </Pressable>
+        </View>
+        {findError && <Text style={[styles.findHint, { color: theme.textMuted }]}>{findError}</Text>}
+        {places.map((p, i) => (
+          <View key={i} style={[styles.placeRow, { backgroundColor: theme.card, borderColor: theme.border }]}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.cardTitle, { color: theme.text }]} numberOfLines={1}>{p.name}</Text>
+              {p.address && (
+                <Text style={[styles.cardSub, { color: theme.textMuted }]} numberOfLines={1}>{p.address}</Text>
+              )}
+            </View>
+            <Pressable onPress={() => addFavorite(p)} style={[styles.addFav, { backgroundColor: theme.primary }]}>
+              <Text style={styles.addFavText}>＋ Add</Text>
+            </Pressable>
+          </View>
+        ))}
+
+        <Text style={[styles.section, { color: theme.textMuted, marginTop: 24 }]}>MY STORES</Text>
         {stores.map((s) => (
           <Pressable
             key={s.id}
@@ -108,6 +191,29 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   nearbyText: { fontWeight: '700', fontSize: 15 },
+  section: { fontSize: 12, fontWeight: '800', letterSpacing: 0.5, marginBottom: 10 },
+  findRow: { flexDirection: 'row', gap: 8 },
+  input: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
+  },
+  findBtn: { paddingHorizontal: 16, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  findBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  findHint: { fontSize: 13, lineHeight: 18, marginTop: 8 },
+  placeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: 14,
+    marginTop: 8,
+  },
+  addFav: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10 },
+  addFavText: { color: '#fff', fontWeight: '700', fontSize: 14 },
   card: {
     flexDirection: 'row',
     alignItems: 'center',

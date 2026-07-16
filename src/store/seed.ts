@@ -176,14 +176,16 @@ export const SAMPLE_RECEIPT_TEXT = `GROCERY MARKET
 123 Main Street
 07/15/2026  14:32
 
-Bananas                 1.29
-2 Oat Milk              7.98
-Eggs Large Dozen        4.49
-Chicken Breast          8.60
-Spinach Organic         2.00
-Sourdough Bread         3.50
-SUBTOTAL               27.86
-TAX                     1.53
-TOTAL                  29.39
-VISA                   29.39
+BANANAS
+1.24 lb @ $0.69/lb        0.86 F
+GALA APPLES 2.03 lb @ 1.49/lb   3.02 F
+2 Oat Milk 64 fl oz             7.98 F
+Eggs Large 12 ct                4.49 F
+Chicken Breast 1.15 lb @ 5.99/lb  6.89 F
+Spinach Organic 5 oz            3.50 F
+Sourdough Bread                 4.29 F
+SUBTOTAL                       31.03
+TAX                             0.00
+TOTAL                          31.03
+VISA                           31.03
 Thank you for shopping!`;

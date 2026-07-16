@@ -21,6 +21,7 @@ import { seedList, seedReceipts, seedStores } from './seed';
 import { uid } from '../utils/id';
 import { dateKey } from '../utils/dates';
 import { getCurrentCoord, nearbyStores, notifyArrival, NearbyHit } from '../utils/location';
+import { usualItemsAtStore } from '../utils/suggestions';
 
 type Ctx = {
   ready: boolean;
@@ -221,10 +222,11 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
     if (!coord) return [];
     const hits = nearbyStores(coord, stores);
     for (const hit of hits) {
-      await notifyArrival(hit.store, activeCount);
+      const usual = usualItemsAtStore(receipts, hit.store);
+      await notifyArrival(hit.store, activeCount, usual);
     }
     return hits;
-  }, [stores, activeCount]);
+  }, [stores, activeCount, receipts]);
 
   const value = useMemo<Ctx>(
     () => ({

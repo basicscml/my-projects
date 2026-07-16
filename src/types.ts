@@ -71,8 +71,10 @@ export type Store = {
   name: string;
   emoji: string;
   color: string;
+  /** Street address; can be geocoded into `location`. */
+  address?: string | null;
   location: Coord | null;
-  /** Geofence radius in meters. */
+  /** Geofence radius in meters (⅛ mile ≈ 201 m). */
   radius: number;
   geofenceEnabled: boolean;
   /** What to do when you arrive. */

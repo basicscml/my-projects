@@ -21,6 +21,17 @@ export async function getCurrentCoord(): Promise<Coord | null> {
   return { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
 }
 
+/** Turn a street address into coordinates (device geocoder). */
+export async function geocodeAddress(address: string): Promise<Coord | null> {
+  const q = address.trim();
+  if (!q) return null;
+  const ok = await ensureLocationPermission();
+  if (!ok) return null;
+  const results = await Location.geocodeAsync(q);
+  if (!results.length) return null;
+  return { latitude: results[0].latitude, longitude: results[0].longitude };
+}
+
 export type NearbyHit = {
   store: Store;
   distance: number;
@@ -42,7 +53,8 @@ export function nearbyStores(coord: Coord, stores: Store[]): NearbyHit[] {
 /** Fire a local notification when the user arrives at a store. */
 export async function notifyArrival(
   store: Store,
-  listCount: number
+  listCount: number,
+  usualItems: string[] = []
 ): Promise<void> {
   const granted = await ensureNotifPermissions();
   if (!granted) return;
@@ -50,7 +62,9 @@ export async function notifyArrival(
   if (store.remindList && listCount > 0) {
     parts.push(`${listCount} item${listCount === 1 ? '' : 's'} on your list`);
   }
-  if (store.suggestRestock) parts.push('tap to see restock picks');
+  if (store.suggestRestock && usualItems.length > 0) {
+    parts.push(`you usually get: ${usualItems.join(', ')}`);
+  }
   await Notifications.scheduleNotificationAsync({
     content: {
       title: `${store.emoji} You're at ${store.name}`,

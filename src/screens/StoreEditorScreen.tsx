@@ -17,13 +17,18 @@ import { useShopping } from '../store/ShoppingContext';
 import { RootStackParamList } from '../navigation/types';
 import { Coord, Store } from '../types';
 import { uid } from '../utils/id';
-import { getCurrentCoord } from '../utils/location';
+import { getCurrentCoord, geocodeAddress } from '../utils/location';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 type Rt = RouteProp<RootStackParamList, 'StoreEditor'>;
 
 const EMOJIS = ['🛒', '🥕', '🍎', '🥖', '🧀', '🐟', '💊', '🏪', '🍷', '🌮'];
-const RADII = [100, 150, 250, 500];
+// Radius options as fractions of a mile (stored internally in meters).
+const RADII: { m: number; label: string }[] = [
+  { m: 201, label: '⅛ mi' },
+  { m: 402, label: '¼ mi' },
+  { m: 805, label: '½ mi' },
+];
 
 export function StoreEditorScreen() {
   const theme = useTheme();
@@ -37,12 +42,14 @@ export function StoreEditorScreen() {
   const [name, setName] = useState(existing?.name ?? '');
   const [emoji, setEmoji] = useState(existing?.emoji ?? '🛒');
   const [color, setColor] = useState(existing?.color ?? routineColors[1]);
+  const [address, setAddress] = useState(existing?.address ?? '');
   const [location, setLocation] = useState<Coord | null>(existing?.location ?? null);
-  const [radius, setRadius] = useState(existing?.radius ?? 150);
+  const [radius, setRadius] = useState(existing?.radius ?? 201);
   const [geofenceEnabled, setGeofenceEnabled] = useState(existing?.geofenceEnabled ?? false);
   const [remindList, setRemindList] = useState(existing?.remindList ?? true);
   const [suggestRestock, setSuggestRestock] = useState(existing?.suggestRestock ?? true);
   const [locating, setLocating] = useState(false);
+  const [geocoding, setGeocoding] = useState(false);
 
   useLayoutEffect(() => {
     navigation.setOptions({ title: existing ? 'Edit store' : 'New store' });
@@ -62,6 +69,26 @@ export function StoreEditorScreen() {
     }
   };
 
+  const useAddress = async () => {
+    if (!address.trim()) {
+      Alert.alert('Address needed', 'Type the store address first.');
+      return;
+    }
+    setGeocoding(true);
+    try {
+      const coord = await geocodeAddress(address);
+      if (!coord) {
+        Alert.alert('Not found', 'Couldn’t locate that address. Check it, or use your current location.');
+        return;
+      }
+      setLocation(coord);
+    } catch {
+      Alert.alert('Lookup failed', 'Address lookup needs the phone app and location access.');
+    } finally {
+      setGeocoding(false);
+    }
+  };
+
   const onSave = () => {
     if (!name.trim()) {
       Alert.alert('Name needed', 'Give the store a name.');
@@ -76,6 +103,7 @@ export function StoreEditorScreen() {
       name: name.trim(),
       emoji,
       color,
+      address: address.trim() || null,
       location,
       radius,
       geofenceEnabled,
@@ -161,6 +189,27 @@ export function StoreEditorScreen() {
         ))}
       </View>
 
+      <Label>ADDRESS</Label>
+      <View style={styles.addrRow}>
+        <TextInput
+          value={address}
+          onChangeText={setAddress}
+          placeholder="123 Main St, City"
+          placeholderTextColor={theme.textMuted}
+          style={[
+            styles.input,
+            { flex: 1, backgroundColor: theme.card, color: theme.text, borderColor: theme.border },
+          ]}
+        />
+        <Pressable
+          onPress={useAddress}
+          disabled={geocoding || !address.trim()}
+          style={[styles.geoBtn, { backgroundColor: address.trim() ? theme.primary : theme.border }]}
+        >
+          <Text style={styles.geoBtnText}>{geocoding ? '…' : 'Locate'}</Text>
+        </Pressable>
+      </View>
+
       <Label>LOCATION</Label>
       <Pressable
         onPress={useCurrentLocation}
@@ -171,12 +220,12 @@ export function StoreEditorScreen() {
           {locating
             ? 'Getting location…'
             : location
-            ? `${location.latitude.toFixed(5)}, ${location.longitude.toFixed(5)}`
+            ? `Pinned: ${location.latitude.toFixed(5)}, ${location.longitude.toFixed(5)}`
             : 'Use my current location'}
         </Text>
       </Pressable>
       <Text style={[styles.hint, { color: theme.textMuted }]}>
-        Stand at (or near) the store and tap to pin it. You can update it anytime.
+        Locate by address, or stand at the store and tap to pin it. You can update it anytime.
       </Text>
 
       <View style={styles.switchRow}>
@@ -193,11 +242,11 @@ export function StoreEditorScreen() {
           <Label>TRIGGER RADIUS</Label>
           <View style={styles.radiusRow}>
             {RADII.map((r) => {
-              const on = radius === r;
+              const on = radius === r.m;
               return (
                 <Pressable
-                  key={r}
-                  onPress={() => setRadius(r)}
+                  key={r.m}
+                  onPress={() => setRadius(r.m)}
                   style={[
                     styles.radiusChip,
                     {
@@ -207,7 +256,7 @@ export function StoreEditorScreen() {
                   ]}
                 >
                   <Text style={{ color: on ? '#fff' : theme.text, fontWeight: '700' }}>
-                    {r} m
+                    {r.label}
                   </Text>
                 </Pressable>
               );
@@ -254,6 +303,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 16,
   },
+  addrRow: { flexDirection: 'row', gap: 8 },
+  geoBtn: { paddingHorizontal: 16, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  geoBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   emojiPreview: {
     width: 50,

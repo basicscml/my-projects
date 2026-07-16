@@ -19,8 +19,15 @@ const DATE_PATTERNS: RegExp[] = [
   /(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})/, // 07/15/2026 or 15.07.26
 ];
 
-const PRICE_AT_END = /(-?\$?\s*\d{1,4}(?:[.,]\d{2}))\s*-?\s*$/;
+// Allow a trailing tax code letter (e.g. "3.99 F", "0.86 T") after the price.
+const PRICE_AT_END = /(-?\$?\s*\d{1,4}(?:[.,]\d{2}))\s*[A-Z*]?\s*-?\s*$/;
 const QTY_PREFIX = /^(\d{1,3})\s*(?:x|@|ea|\*)?\s+/i;
+
+// Weight sold by unit price, e.g. "1.24 lb @ $0.69/lb" or "0.5 kg @ 2.99 per kg".
+const WEIGHT_AT =
+  /(\d+(?:\.\d+)?)\s*(lb|lbs|oz|kg|g)\b\s*@\s*\$?\s*\d+(?:[.,]\d+)?\s*(?:\/|per)\s*(?:lb|lbs|oz|kg|g)\b/i;
+// A line that begins with a weight (the second line of a two-line produce entry).
+const WEIGHT_LINE_START = /^\s*\d+(?:\.\d+)?\s*(?:lb|lbs|oz|kg|g)\b/i;
 
 /**
  * Best-effort parse of raw receipt text (from a photo's OCR text, a PDF text
@@ -28,10 +35,12 @@ const QTY_PREFIX = /^(\d{1,3})\s*(?:x|@|ea|\*)?\s+/i;
  * gracefully: whatever it can't read, the user fixes on the review screen.
  */
 export function parseReceipt(raw: string): ParsedReceipt {
-  const lines = raw
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter((l) => l.length > 0);
+  const lines = mergeProduceLines(
+    raw
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0)
+  );
 
   const storeName = detectStore(lines);
   const dateKey = detectDate(lines);
@@ -39,6 +48,28 @@ export function parseReceipt(raw: string): ParsedReceipt {
   const items = detectItems(lines);
 
   return { storeName, dateKey, total, items };
+}
+
+/**
+ * Produce often prints across two lines:
+ *   BANANAS
+ *   1.24 lb @ $0.69/lb        0.86
+ * Merge the name line with the following weight+price line so it reads as one.
+ */
+function mergeProduceLines(lines: string[]): string[] {
+  const out: string[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    const cur = lines[i];
+    const next = lines[i + 1];
+    const nameOnly = /[a-z]/i.test(cur) && !PRICE_AT_END.test(cur) && !SKIP_LINE.test(cur);
+    if (next && nameOnly && WEIGHT_LINE_START.test(next) && PRICE_AT_END.test(next)) {
+      out.push(`${cur} ${next}`);
+      i++; // consume the weight line
+    } else {
+      out.push(cur);
+    }
+  }
+  return out;
 }
 
 function detectStore(lines: string[]): string | null {
@@ -115,21 +146,40 @@ function detectItems(lines: string[]): ReceiptItem[] {
     // Strip trailing dot leaders / codes.
     name = name.replace(/[.\s]{2,}$/, '').replace(/\s{2,}/g, ' ').trim();
 
+    // Weight-priced produce: capture the weight as the size, drop the "@/lb" bit.
+    let sizeText: string | undefined;
+    const weightMatch = name.match(WEIGHT_AT);
+    if (weightMatch) {
+      sizeText = `${weightMatch[1]} ${weightMatch[2].toLowerCase()}`;
+      name = name.replace(WEIGHT_AT, '').replace(/\s{2,}/g, ' ').trim();
+    }
+
     let qty = 1;
     const qtyMatch = name.match(QTY_PREFIX);
     if (qtyMatch) {
       qty = Math.max(1, parseInt(qtyMatch[1], 10));
       name = name.slice(qtyMatch[0].length).trim();
     }
+    // Clean any leftover trailing "@" or unit-price fragments.
+    name = name.replace(/[@/].*$/, '').replace(/\s{2,}/g, ' ').trim();
     if (name.length < 2 || !/[a-z]/i.test(name)) continue;
 
-    const size = parseSize(name);
+    if (!sizeText) {
+      const parsed = parseSize(name);
+      if (parsed) {
+        sizeText = parsed.display;
+        // Drop the size token from the name so it isn't shown twice.
+        name = name.replace(parsed.raw, '').replace(/\s{2,}/g, ' ').trim();
+      }
+    }
+    if (name.length < 2 || !/[a-z]/i.test(name)) continue;
+
     items.push({
       id: uid(),
       name: titleCase(name),
       price,
       qty,
-      ...(size ? { size: size.display } : {}),
+      ...(sizeText ? { size: sizeText } : {}),
     });
   }
   return items;
