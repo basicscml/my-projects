@@ -2,15 +2,18 @@ import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { Routine } from '../types';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+// Local notifications aren't supported on web; skip handler setup there.
+if (Platform.OS !== 'web') {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
 
 /** Ask for permission once; returns true if we can post notifications. */
 export async function ensurePermissions(): Promise<boolean> {
@@ -38,6 +41,9 @@ export async function ensurePermissions(): Promise<boolean> {
  * notification ids to persist on the routine.
  */
 export async function rescheduleRoutine(routine: Routine): Promise<string[]> {
+  // Web can't schedule local notifications — no-op so seeding never fails there.
+  if (Platform.OS === 'web') return [];
+
   // Clear old ones first.
   await cancelRoutine(routine);
 

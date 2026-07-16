@@ -149,7 +149,7 @@ export function CompareDetailScreen() {
                 You rebuy every ~{Math.round(c.interval.avgIntervalDays)} days
               </Text>
               <Text style={[styles.storeMeta, { color: theme.textMuted }]}>
-                Last bought {relativeDays(-c.interval.daysSinceLast)} ·{' '}
+                Last bought {relativeDays(c.interval.daysSinceLast)} ·{' '}
                 {c.interval.status === 'low'
                   ? 'likely out now'
                   : c.interval.daysLeft != null

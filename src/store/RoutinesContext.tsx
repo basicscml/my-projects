@@ -44,23 +44,29 @@ export function RoutinesProvider({ children }: { children: React.ReactNode }) {
   // Initial load (or seed on first launch).
   useEffect(() => {
     (async () => {
-      const [loadedRoutines, loadedCompletions] = await Promise.all([
-        loadRoutines(),
-        loadCompletions(),
-      ]);
-      if (loadedRoutines) {
-        setRoutines(loadedRoutines);
-      } else {
-        const seeded = seedRoutines();
-        // Schedule reminders for any seeded routines that want them.
-        for (const r of seeded) {
-          r.notificationIds = await rescheduleRoutine(r);
+      try {
+        const [loadedRoutines, loadedCompletions] = await Promise.all([
+          loadRoutines(),
+          loadCompletions(),
+        ]);
+        if (loadedRoutines) {
+          setRoutines(loadedRoutines);
+        } else {
+          const seeded = seedRoutines();
+          // Schedule reminders for any seeded routines that want them.
+          for (const r of seeded) {
+            r.notificationIds = await rescheduleRoutine(r);
+          }
+          setRoutines(seeded);
+          await saveRoutines(seeded);
         }
-        setRoutines(seeded);
-        await saveRoutines(seeded);
+        setCompletions(loadedCompletions);
+      } catch (e) {
+        // Never let a storage/native failure wedge the app at the loading state.
+        console.warn('Routines init failed', e);
+      } finally {
+        setReady(true);
       }
-      setCompletions(loadedCompletions);
-      setReady(true);
     })();
   }, []);
 

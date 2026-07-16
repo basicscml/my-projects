@@ -30,7 +30,7 @@ export function PantryScreen() {
 
   const subtitle = (e: PantryEntry) => {
     if (e.avgIntervalDays == null) {
-      return `Bought once · ${relativeDays(-e.daysSinceLast)}`;
+      return `Bought once · ${relativeDays(e.daysSinceLast)}`;
     }
     const cadence = `every ~${Math.round(e.avgIntervalDays)}d`;
     if (e.daysLeft == null) return cadence;
