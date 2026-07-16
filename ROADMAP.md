@@ -13,6 +13,14 @@ Legend:
 
 ---
 
+## Recently shipped highlight
+
+**Meds → shopping list crossover** (the "brings it all together" feature): a
+routine can carry a refill cycle (e.g. a 30-day meds supply). As the days count
+down, when it runs low it surfaces under "Refills due" on the shopping list with
+one-tap **Add**; once added the row offers **Mark filled** to reset the cycle.
+The routines half now feeds the shopping half — exactly the unifying idea.
+
 ## Guiding thesis — a second brain for the boring-but-hard stuff
 
 The app exists to offload the executive-function jobs an ADHD brain finds

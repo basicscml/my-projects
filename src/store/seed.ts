@@ -1,5 +1,13 @@
 import { Receipt, Routine, ShoppingItem, Store } from '../types';
 import { uid } from '../utils/id';
+import { dateKey } from '../utils/dates';
+
+/** "YYYY-MM-DD" for `n` days before today. */
+function daysAgoKey(n: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return dateKey(d);
+}
 
 /** Sensible starter routines so the app is useful on first launch. */
 export function seedRoutines(): Routine[] {
@@ -30,6 +38,13 @@ export function seedRoutines(): Routine[] {
       reminderEnabled: true,
       notificationIds: [],
       steps: [{ id: uid(), text: 'Take evening meds' }],
+      // 30-day supply filled 26 days ago -> 4 days left, so it shows up as due.
+      restock: {
+        itemName: 'Evening meds refill',
+        daysPerRefill: 30,
+        lastFilledKey: daysAgoKey(26),
+        leadDays: 7,
+      },
     },
     {
       id: uid(),

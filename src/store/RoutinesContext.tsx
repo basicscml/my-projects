@@ -30,6 +30,8 @@ type Ctx = {
   toggleStep: (routineId: string, stepId: string, day?: string) => void;
   completedSteps: (routineId: string, day?: string) => string[];
   resetRoutineForToday: (routineId: string) => void;
+  /** Reset a consumable routine's refill cycle to "filled today". */
+  markRefilled: (routineId: string) => void;
 };
 
 const RoutinesContext = createContext<Ctx | null>(null);
@@ -134,6 +136,18 @@ export function RoutinesProvider({ children }: { children: React.ReactNode }) {
     [persistCompletions]
   );
 
+  const markRefilled = useCallback(
+    (routineId: string) => {
+      const next = routines.map((r) =>
+        r.id === routineId && r.restock
+          ? { ...r, restock: { ...r.restock, lastFilledKey: dateKey() } }
+          : r
+      );
+      persistRoutines(next);
+    },
+    [routines, persistRoutines]
+  );
+
   const resetRoutineForToday = useCallback(
     (routineId: string) => {
       const day = dateKey();
@@ -157,6 +171,7 @@ export function RoutinesProvider({ children }: { children: React.ReactNode }) {
       toggleStep,
       completedSteps,
       resetRoutineForToday,
+      markRefilled,
     }),
     [
       ready,
@@ -169,6 +184,7 @@ export function RoutinesProvider({ children }: { children: React.ReactNode }) {
       toggleStep,
       completedSteps,
       resetRoutineForToday,
+      markRefilled,
     ]
   );
 

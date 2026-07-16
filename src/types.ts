@@ -8,6 +8,22 @@ export type Step = {
 };
 
 /**
+ * Optional refill cycle for a consumable routine (e.g. meds). Ties the routines
+ * half to the shopping half: as the supply counts down, the app offers to add
+ * the refill to the shopping list before it runs out.
+ */
+export type RoutineRestock = {
+  /** What to add to the shopping list, e.g. "Evening meds refill". */
+  itemName: string;
+  /** Days a full supply lasts, e.g. 30. */
+  daysPerRefill: number;
+  /** Date the supply was last filled ("YYYY-MM-DD"). */
+  lastFilledKey: string;
+  /** Remind this many days before it runs out. */
+  leadDays: number;
+};
+
+/**
  * A repeatable routine (e.g. "Morning", "Meds", "Wind-down").
  * `days` are weekday indices 0=Sun … 6=Sat that the routine runs on.
  * `time` is "HH:MM" (24h) used for the daily reminder; null means no reminder.
@@ -23,6 +39,8 @@ export type Routine = {
   steps: Step[];
   /** Scheduled OS notification ids so we can cancel/reschedule cleanly. */
   notificationIds: string[];
+  /** Optional refill cycle for consumables like meds. */
+  restock?: RoutineRestock | null;
 };
 
 /**

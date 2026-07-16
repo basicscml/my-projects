@@ -19,6 +19,8 @@ import { useRoutines } from '../store/RoutinesContext';
 import { RootStackParamList } from '../navigation/types';
 import { Routine, Step } from '../types';
 import { uid } from '../utils/id';
+import { dateKey } from '../utils/dates';
+import { refillStatus } from '../utils/refills';
 import { DayPicker } from '../components/DayPicker';
 import { TimePicker } from '../components/TimePicker';
 
@@ -51,6 +53,13 @@ export function RoutineEditorScreen() {
   const [steps, setSteps] = useState<Step[]>(
     existing?.steps ?? [{ id: uid(), text: '' }]
   );
+  const [restockEnabled, setRestockEnabled] = useState(!!existing?.restock);
+  const [refillItem, setRefillItem] = useState(existing?.restock?.itemName ?? '');
+  const [daysPerRefill, setDaysPerRefill] = useState(existing?.restock?.daysPerRefill ?? 30);
+  const [leadDays, setLeadDays] = useState(existing?.restock?.leadDays ?? 7);
+  const [lastFilledKey, setLastFilledKey] = useState(
+    existing?.restock?.lastFilledKey ?? dateKey()
+  );
 
   useLayoutEffect(() => {
     navigation.setOptions({ title: existing ? 'Edit routine' : 'New routine' });
@@ -82,6 +91,10 @@ export function RoutineEditorScreen() {
       Alert.alert('Pick days', 'Choose at least one day for this routine.');
       return;
     }
+    if (restockEnabled && !refillItem.trim()) {
+      Alert.alert('Refill item needed', 'Name what to add to the shopping list when it runs low.');
+      return;
+    }
 
     const routine: Routine = {
       id: existing?.id ?? uid(),
@@ -93,6 +106,9 @@ export function RoutineEditorScreen() {
       reminderEnabled,
       steps: cleanSteps,
       notificationIds: existing?.notificationIds ?? [],
+      restock: restockEnabled
+        ? { itemName: refillItem.trim(), daysPerRefill, lastFilledKey, leadDays }
+        : null,
     };
     await upsertRoutine(routine);
     navigation.goBack();
@@ -254,6 +270,87 @@ export function RoutineEditorScreen() {
           </Text>
         </Pressable>
 
+        {/* Refill / restock (meds → shopping list) */}
+        <View style={styles.reminderHeader}>
+          <Label>REFILL REMINDER</Label>
+          <Switch
+            value={restockEnabled}
+            onValueChange={setRestockEnabled}
+            trackColor={{ true: theme.accent, false: theme.border }}
+          />
+        </View>
+        {restockEnabled && (
+          <View style={[styles.timeBox, { backgroundColor: theme.card, borderColor: theme.border, alignItems: 'stretch' }]}>
+            <Text style={[styles.refillHint, { color: theme.textMuted }]}>
+              For consumables like meds. When the supply runs low it lands on your
+              shopping list automatically.
+            </Text>
+            <TextInput
+              value={refillItem}
+              onChangeText={setRefillItem}
+              placeholder="Add to list as… e.g. Evening meds refill"
+              placeholderTextColor={theme.textMuted}
+              style={[
+                styles.input,
+                { marginTop: 12, backgroundColor: theme.bg, color: theme.text, borderColor: theme.border },
+              ]}
+            />
+
+            <Text style={[styles.miniLabel, { color: theme.textMuted }]}>SUPPLY LASTS</Text>
+            <View style={styles.chipRow}>
+              {[30, 60, 90].map((d) => {
+                const on = daysPerRefill === d;
+                return (
+                  <Pressable
+                    key={d}
+                    onPress={() => setDaysPerRefill(d)}
+                    style={[styles.miniChip, { backgroundColor: on ? theme.primary : theme.bg, borderColor: on ? theme.primary : theme.border }]}
+                  >
+                    <Text style={{ color: on ? '#fff' : theme.text, fontWeight: '700' }}>{d} days</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <Text style={[styles.miniLabel, { color: theme.textMuted }]}>REMIND BEFORE</Text>
+            <View style={styles.chipRow}>
+              {[3, 7, 14].map((d) => {
+                const on = leadDays === d;
+                return (
+                  <Pressable
+                    key={d}
+                    onPress={() => setLeadDays(d)}
+                    style={[styles.miniChip, { backgroundColor: on ? theme.primary : theme.bg, borderColor: on ? theme.primary : theme.border }]}
+                  >
+                    <Text style={{ color: on ? '#fff' : theme.text, fontWeight: '700' }}>{d} days</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <Pressable
+              onPress={() => setLastFilledKey(dateKey())}
+              style={[styles.filledRow, { borderColor: theme.border }]}
+            >
+              <Text style={{ color: theme.text, fontWeight: '600' }}>
+                Last filled: {lastFilledKey}
+              </Text>
+              <Text style={{ color: theme.accent, fontWeight: '700' }}>Filled today</Text>
+            </Pressable>
+            {(() => {
+              const s = refillStatus(
+                { restock: { itemName: refillItem, daysPerRefill, lastFilledKey, leadDays } } as any,
+                dateKey()
+              );
+              return s ? (
+                <Text style={[styles.refillHint, { color: theme.textMuted, marginTop: 8 }]}>
+                  {s.daysLeft <= 0 ? 'Out of supply now.' : `~${s.daysLeft} days of supply left.`}
+                </Text>
+              ) : null;
+            })()}
+          </View>
+        )}
+
         {/* Actions */}
         <Pressable
           onPress={onSave}
@@ -331,6 +428,20 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   addStepText: { fontWeight: '700', fontSize: 15 },
+  refillHint: { fontSize: 13, lineHeight: 19 },
+  miniLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 0.5, marginTop: 16, marginBottom: 8 },
+  chipRow: { flexDirection: 'row', gap: 8 },
+  miniChip: { borderWidth: 1, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 },
+  filledRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginTop: 16,
+  },
   save: {
     marginTop: 30,
     paddingVertical: 16,

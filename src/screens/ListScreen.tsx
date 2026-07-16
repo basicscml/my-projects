@@ -15,8 +15,10 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme } from '../theme';
 import { useShopping } from '../store/ShoppingContext';
+import { useRoutines } from '../store/RoutinesContext';
 import { RootStackParamList } from '../navigation/types';
 import { buildPantry, recentlyBought, runningLow } from '../utils/pantry';
+import { dueRefills } from '../utils/refills';
 import { dateKey } from '../utils/dates';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -27,11 +29,18 @@ export function ListScreen() {
   const navigation = useNavigation<Nav>();
   const { list, receipts, addItem, toggleItem, removeItem, clearChecked } =
     useShopping();
+  const { routines, markRefilled } = useRoutines();
   const [draft, setDraft] = useState('');
 
   const active = list.filter((i) => !i.checked);
   const done = list.filter((i) => i.checked);
   const today = dateKey();
+
+  const refills = useMemo(() => dueRefills(routines, today), [routines, today]);
+  const onListNames = useMemo(
+    () => new Set(active.map((i) => i.name.toLowerCase())),
+    [active]
+  );
 
   // Predicted "running low" from receipts, minus what's already on the list.
   const lowItems = useMemo(() => {
@@ -128,6 +137,46 @@ export function ListScreen() {
             onRemove={() => removeItem(item.id)}
           />
         ))}
+
+        {/* Refills due — meds/consumables from routines */}
+        {refills.length > 0 && (
+          <View style={{ marginTop: 22 }}>
+            <Text style={[styles.section, { color: theme.textMuted }]}>
+              REFILLS DUE — from your routines
+            </Text>
+            {refills.map((rf) => {
+              const added = onListNames.has(rf.itemName.toLowerCase());
+              return (
+                <View
+                  key={rf.routine.id}
+                  style={[styles.refill, { backgroundColor: theme.card, borderColor: rf.daysLeft <= 0 ? theme.danger : theme.border }]}
+                >
+                  <Text style={styles.refillEmoji}>{rf.routine.emoji}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.refillName, { color: theme.text }]}>{rf.itemName}</Text>
+                    <Text style={[styles.refillSub, { color: theme.textMuted }]}>
+                      {rf.daysLeft <= 0
+                        ? 'out of supply'
+                        : `~${rf.daysLeft} day${rf.daysLeft === 1 ? '' : 's'} of supply left`}
+                    </Text>
+                  </View>
+                  {added ? (
+                    <Pressable onPress={() => markRefilled(rf.routine.id)} style={styles.filledBtn}>
+                      <Text style={[styles.filledText, { color: theme.accent }]}>Mark filled</Text>
+                    </Pressable>
+                  ) : (
+                    <Pressable
+                      onPress={() => addItem(rf.itemName)}
+                      style={[styles.refillAdd, { backgroundColor: theme.primary }]}
+                    >
+                      <Text style={styles.refillAddText}>＋ Add</Text>
+                    </Pressable>
+                  )}
+                </View>
+              );
+            })}
+          </View>
+        )}
 
         {/* Running low — predicted from receipts */}
         {lowItems.length > 0 && (
@@ -294,6 +343,22 @@ const styles = StyleSheet.create({
   itemName: { fontSize: 16, fontWeight: '600', flexShrink: 1 },
   remove: { paddingLeft: 10 },
   section: { fontSize: 12, fontWeight: '800', letterSpacing: 0.5 },
+  refill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: 14,
+    marginTop: 10,
+  },
+  refillEmoji: { fontSize: 24 },
+  refillName: { fontSize: 16, fontWeight: '700' },
+  refillSub: { fontSize: 13, marginTop: 2 },
+  refillAdd: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10 },
+  refillAddText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  filledBtn: { paddingHorizontal: 10, paddingVertical: 8 },
+  filledText: { fontWeight: '700', fontSize: 14 },
   section2: {
     flexDirection: 'row',
     justifyContent: 'space-between',
