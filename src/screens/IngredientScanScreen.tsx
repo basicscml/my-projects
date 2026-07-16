@@ -34,6 +34,7 @@ import {
   novaColor,
   novaLabel,
 } from '../utils/openFoodFacts';
+import { blendHealth } from '../utils/healthScore';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 type Nutrition = { nova: number | null; nutriScore: NutriScore; brand: string | null };
@@ -127,6 +128,13 @@ export function IngredientScanScreen() {
 
   const scoreColor = (score: number) =>
     score >= 80 ? theme.accent : score >= 60 ? '#7BA05B' : score >= 40 ? theme.amber : theme.danger;
+
+  // Blend the additive score with OFF nutrition (Nutri-Score/NOVA) when present.
+  const display = result
+    ? nutrition
+      ? blendHealth(result.score, nutrition.nutriScore, nutrition.nova)
+      : { score: result.score, grade: result.grade, basis: ['additives'] }
+    : null;
 
   return (
     <KeyboardAvoidingView
@@ -260,23 +268,26 @@ export function IngredientScanScreen() {
             <View
               style={[
                 styles.scoreCard,
-                { backgroundColor: theme.card, borderColor: scoreColor(result.score) },
+                { backgroundColor: theme.card, borderColor: scoreColor(display!.score) },
               ]}
             >
               <ProgressRing
-                progress={result.score / 100}
-                color={scoreColor(result.score)}
+                progress={display!.score / 100}
+                color={scoreColor(display!.score)}
                 size={76}
-                label={String(result.score)}
+                label={String(display!.score)}
               />
               <View style={{ flex: 1 }}>
-                <Text style={[styles.grade, { color: scoreColor(result.score) }]}>
-                  {result.grade}
+                <Text style={[styles.grade, { color: scoreColor(display!.score) }]}>
+                  {display!.grade}
                 </Text>
                 <Text style={[styles.gradeSub, { color: theme.textMuted }]}>
                   {result.additiveCount} additive
                   {result.additiveCount === 1 ? '' : 's'} ·{' '}
                   {result.counts.high + result.counts.moderate} to watch
+                </Text>
+                <Text style={[styles.basis, { color: theme.textMuted }]}>
+                  Based on: {display!.basis.join(' · ')}
                 </Text>
               </View>
             </View>
@@ -361,7 +372,7 @@ export function IngredientScanScreen() {
             {productName.trim() ? (
               <Pressable
                 onPress={() => {
-                  setProductHealth(productName, result.score, result.grade);
+                  setProductHealth(productName, display!.score, display!.grade);
                   setSaved(true);
                 }}
                 disabled={saved}
@@ -485,6 +496,7 @@ const styles = StyleSheet.create({
   },
   grade: { fontSize: 24, fontWeight: '800' },
   gradeSub: { fontSize: 13, marginTop: 4 },
+  basis: { fontSize: 11, marginTop: 4, fontStyle: 'italic' },
   petroBanner: { borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 12 },
   petroText: { fontSize: 13, lineHeight: 19, fontWeight: '600' },
   disclaimer: { fontSize: 12, lineHeight: 17, marginBottom: 16 },
