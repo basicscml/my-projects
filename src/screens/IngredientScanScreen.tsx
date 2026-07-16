@@ -163,6 +163,17 @@ export function IngredientScanScreen() {
               </View>
             </View>
 
+            {result.petroleumCount > 0 && (
+              <View style={[styles.petroBanner, { backgroundColor: theme.cardAlt, borderColor: theme.amber }]}>
+                <Text style={[styles.petroText, { color: theme.text }]}>
+                  ⛽ {result.petroleumCount} petroleum-derived{' '}
+                  {result.petroleumCount === 1 ? 'ingredient' : 'ingredients'} —
+                  made from the same crude-oil feedstock as fuels (dyes, TBHQ,
+                  BHA/BHT, mineral-oil waxes).
+                </Text>
+              </View>
+            )}
+
             <Text style={[styles.disclaimer, { color: theme.textMuted }]}>
               Additive-focused score (nutrition not included). Guidance only, not
               medical advice. Unmatched ingredients are shown as “not in dataset”,
@@ -187,6 +198,7 @@ export function IngredientScanScreen() {
                       <>
                         <Text style={[styles.ingMeta, { color }]}>
                           {riskLabel(info.risk)} · {info.category}
+                          {info.petroleum ? '  ·  ⛽ petroleum-derived' : ''}
                         </Text>
                         <Text style={[styles.ingNote, { color: theme.textMuted }]}>
                           {info.note}
@@ -305,6 +317,8 @@ const styles = StyleSheet.create({
   },
   grade: { fontSize: 24, fontWeight: '800' },
   gradeSub: { fontSize: 13, marginTop: 4 },
+  petroBanner: { borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 12 },
+  petroText: { fontSize: 13, lineHeight: 19, fontWeight: '600' },
   disclaimer: { fontSize: 12, lineHeight: 17, marginBottom: 16 },
   ingRow: {
     flexDirection: 'row',

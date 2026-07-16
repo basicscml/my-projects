@@ -14,6 +14,8 @@ export type IngredientAnalysis = {
   counts: Record<IngredientRisk, number>;
   unknownCount: number;
   additiveCount: number;
+  /** How many matched ingredients are petroleum/crude-oil derived. */
+  petroleumCount: number;
 };
 
 const RISK_PENALTY: Record<IngredientRisk, number> = {
@@ -88,6 +90,7 @@ export function analyzeIngredients(raw: string): IngredientAnalysis {
   let penalty = 0;
   let additiveCount = 0;
   let unknownCount = 0;
+  let petroleumCount = 0;
 
   for (const ing of ingredients) {
     if (!ing.info) {
@@ -97,13 +100,14 @@ export function analyzeIngredients(raw: string): IngredientAnalysis {
     counts[ing.info.risk] += 1;
     penalty += RISK_PENALTY[ing.info.risk];
     if (ing.info.codes.length > 0) additiveCount += 1;
+    if (ing.info.petroleum) petroleumCount += 1;
   }
 
   const score = Math.max(0, Math.min(100, 100 - penalty));
   const grade =
     score >= 80 ? 'Excellent' : score >= 60 ? 'Good' : score >= 40 ? 'Poor' : 'Bad';
 
-  return { ingredients, score, grade, counts, unknownCount, additiveCount };
+  return { ingredients, score, grade, counts, unknownCount, additiveCount, petroleumCount };
 }
 
 export function riskColor(risk: IngredientRisk): string {

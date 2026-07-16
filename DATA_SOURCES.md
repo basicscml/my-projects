@@ -80,6 +80,28 @@ feature that fear-mongers would be both wrong and untrustworthy.
    **USDA PDP** + **FDA Total Diet Study** (+ Healthy Florida First where terms
    allow), matched by barcode/brand — always shown with dose + source context.
 
+## Ultra-processed food markers (consumer guidance)
+
+Not a database, but useful "avoid" lists to shape the scanner's flags:
+
+- **Mayo Clinic** names these as ingredients to avoid in ultra-processed foods:
+  high-fructose corn syrup, hydrogenated oils, food dyes, MSG, sodium
+  nitrates/nitrites, and sulfites — plus the heuristic "if you can't pronounce
+  it / it's a long chemical name, it's likely ultra-processed." All of these are
+  in our dataset.
+
+## Petroleum-derived additives (the "made from the same stuff as fuel" angle)
+
+Many synthetic additives share a **crude-oil feedstock** with fuels. Now flagged
+in the app with `petroleum: true` and an ⛽ badge:
+
+- **Artificial dyes** (Red 40, Yellow 5/6, Blue 1, …) — historically "coal-tar",
+  now petroleum-based; the **FDA is phasing the major ones out by end of 2027**.
+- **TBHQ, BHA, BHT** — petroleum-derived antioxidants in high-fat/fried foods.
+- **Mineral oil / paraffin / microcrystalline waxes** (E905) — petroleum;
+  MOAH (aromatic hydrocarbon) contamination is an EFSA concern.
+- **~85% of synthetic vanillin** comes from guaiacol, a petrochemical precursor.
+
 ## Sources
 
 - Open Food Facts — API: https://openfoodfacts.github.io/openfoodfacts-server/api/ · Data: https://world.openfoodfacts.org/data
@@ -92,5 +114,8 @@ feature that fear-mongers would be both wrong and untrustworthy.
 - FDA Food Additive Status List: https://www.fda.gov/food/food-additives-petitions/food-additive-status-list
 - EU additives database: https://food.ec.europa.eu/food-safety/food-improvement-agents/additives/database_en
 - Healthy Florida First (bread): https://exposingfoodtoxins.com/bread/ · (candy): https://exposingfoodtoxins.com/candy/
+- Mayo Clinic Press — ingredients to avoid in UPFs: https://mcpress.mayoclinic.org/nutrition-fitness/key-ingredients-to-avoid-in-ultra-processed-foods/
+- tert-Butylhydroquinone (TBHQ): https://en.wikipedia.org/wiki/Tert-Butylhydroquinone
+- EFSA — paraffinic waxes / mineral oil in food contact: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9890528/
 - Poynter fact-check (bread glyphosate context): https://www.poynter.org/fact-checking/2026/does-bread-contain-weed-killer/
 - Food Safety Magazine (candy arsenic context): https://www.food-safety.com/articles/11116-scientists-say-missing-data-in-florida-reports-on-metals-in-candy-infant-formula-create-confusion

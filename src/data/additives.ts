@@ -23,6 +23,8 @@ export type AdditiveInfo = {
   risk: IngredientRisk;
   note: string;
   source: string;
+  /** Derived from petroleum / crude-oil feedstock (same source as fuels). */
+  petroleum?: boolean;
 };
 
 export const ADDITIVES: AdditiveInfo[] = [
@@ -33,8 +35,9 @@ export const ADDITIVES: AdditiveInfo[] = [
     synonyms: ['tartrazine', 'yellow 5', 'fd&c yellow 5'],
     category: 'Colorant',
     risk: 'moderate',
-    note: 'Azo dye linked to hyperactivity in some children; EU requires a warning label.',
-    source: 'EFSA / UK Southampton study (2007)',
+    note: 'Petroleum-derived azo dye (formerly coal-tar); linked to hyperactivity in some children. EU requires a warning label; FDA is phasing petroleum dyes out by end of 2027.',
+    source: 'EFSA / UK Southampton study (2007); FDA',
+    petroleum: true,
   },
   {
     codes: ['e104'],
@@ -78,8 +81,9 @@ export const ADDITIVES: AdditiveInfo[] = [
     synonyms: ['allura red', 'red 40', 'fd&c red 40'],
     category: 'Colorant',
     risk: 'moderate',
-    note: 'Common azo dye; hyperactivity concerns; EU warning label required.',
-    source: 'EFSA / Southampton study',
+    note: 'Petroleum-derived azo dye (formerly coal-tar); hyperactivity concerns; EU warning label required; FDA phasing out by end of 2027.',
+    source: 'EFSA / Southampton study; FDA',
+    petroleum: true,
   },
   {
     codes: ['e133'],
@@ -156,8 +160,9 @@ export const ADDITIVES: AdditiveInfo[] = [
     synonyms: ['butylated hydroxyanisole', 'bha'],
     category: 'Antioxidant',
     risk: 'high',
-    note: 'IARC classifies BHA as possibly carcinogenic to humans (Group 2B).',
+    note: 'Petroleum-derived antioxidant. IARC classifies BHA as possibly carcinogenic to humans (Group 2B).',
     source: 'IARC (Group 2B)',
+    petroleum: true,
   },
   {
     codes: ['e321'],
@@ -165,8 +170,29 @@ export const ADDITIVES: AdditiveInfo[] = [
     synonyms: ['butylated hydroxytoluene', 'bht'],
     category: 'Antioxidant',
     risk: 'moderate',
-    note: 'Related synthetic antioxidant; mixed evidence, some safety questions.',
+    note: 'Petroleum-derived synthetic antioxidant; mixed evidence, some safety questions.',
     source: 'EFSA additive review',
+    petroleum: true,
+  },
+  {
+    codes: ['e319'],
+    name: 'TBHQ',
+    synonyms: ['tert-butylhydroquinone', 'tbhq', 'tertiary butylhydroquinone'],
+    category: 'Antioxidant',
+    risk: 'moderate',
+    note: 'Petroleum-derived antioxidant in fried/frozen/high-fat foods. High doses show liver/kidney effects in studies; ADI limits intake.',
+    source: 'EFSA / FDA; toxicology reviews',
+    petroleum: true,
+  },
+  {
+    codes: ['e905', 'e905a', 'e905b', 'e905c'],
+    name: 'Mineral Oil / Paraffin Wax',
+    synonyms: ['mineral oil', 'paraffin', 'microcrystalline wax', 'petrolatum', 'petroleum jelly', 'white mineral oil'],
+    category: 'Glazing agent',
+    risk: 'moderate',
+    note: 'Petroleum-derived. Food-grade grades are refined, but mineral-oil aromatic hydrocarbons (MOAH) are a contamination concern EFSA has flagged.',
+    source: 'EFSA (MOSH/MOAH opinions)',
+    petroleum: true,
   },
 
   // --- Sweeteners ---
