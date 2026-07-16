@@ -26,8 +26,17 @@ import {
   riskLabel,
   SAMPLE_INGREDIENTS,
 } from '../utils/ingredientAnalyzer';
+import {
+  searchProductsByName,
+  ProductResult,
+  NutriScore,
+  nutriScoreColor,
+  novaColor,
+  novaLabel,
+} from '../utils/openFoodFacts';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
+type Nutrition = { nova: number | null; nutriScore: NutriScore; brand: string | null };
 
 export function IngredientScanScreen() {
   const theme = useTheme();
@@ -40,6 +49,13 @@ export function IngredientScanScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [result, setResult] = useState<IngredientAnalysis | null>(null);
   const [saved, setSaved] = useState(false);
+
+  // Open Food Facts lookup
+  const [query, setQuery] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [results, setResults] = useState<ProductResult[]>([]);
+  const [nutrition, setNutrition] = useState<Nutrition | null>(null);
 
   useLayoutEffect(() => {
     navigation.setOptions({ title: 'Ingredient scan' });
@@ -64,6 +80,51 @@ export function IngredientScanScreen() {
     setResult(analyzeIngredients(text));
   };
 
+  const runSearch = async () => {
+    const q = query.trim();
+    if (!q) return;
+    setSearching(true);
+    setSearchError(null);
+    setResults([]);
+    try {
+      const r = await searchProductsByName(q);
+      setResults(r);
+      if (r.length === 0) setSearchError('No matching products found.');
+    } catch {
+      setSearchError(
+        'Couldn’t reach Open Food Facts. This works on your phone’s network; the preview sandbox blocks external calls.'
+      );
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const pickProduct = (p: ProductResult) => {
+    setProductName(p.name);
+    setNutrition({ nova: p.novaGroup, nutriScore: p.nutriScore, brand: p.brand });
+    if (p.ingredientsText) {
+      setRaw(p.ingredientsText);
+      analyze(p.ingredientsText);
+    } else {
+      Alert.alert(
+        'No ingredient list',
+        `${p.name} has no ingredients listed in Open Food Facts, but its Nutri-Score / NOVA are shown.`
+      );
+    }
+  };
+
+  const resetAll = () => {
+    setResult(null);
+    setImageUri(null);
+    setRaw('');
+    setProductName('');
+    setSaved(false);
+    setNutrition(null);
+    setResults([]);
+    setQuery('');
+    setSearchError(null);
+  };
+
   const scoreColor = (score: number) =>
     score >= 80 ? theme.accent : score >= 60 ? '#7BA05B' : score >= 40 ? theme.amber : theme.danger;
 
@@ -79,9 +140,66 @@ export function IngredientScanScreen() {
         {!result ? (
           <>
             <Text style={[styles.intro, { color: theme.textMuted }]}>
-              Scan or paste the product’s ingredients list. We check each
-              ingredient against a curated additive-risk dataset and flag the
-              ones worth knowing about.
+              Look up a product in Open Food Facts, or scan/paste the ingredients
+              yourself. We check each ingredient against a curated additive-risk
+              dataset and add the product’s Nutri-Score / processing level.
+            </Text>
+
+            {/* Open Food Facts lookup */}
+            <Text style={[styles.label, { color: theme.textMuted, marginTop: 0 }]}>
+              LOOK UP A PRODUCT · OPEN FOOD FACTS
+            </Text>
+            <View style={styles.searchRow}>
+              <TextInput
+                value={query}
+                onChangeText={setQuery}
+                onSubmitEditing={runSearch}
+                returnKeyType="search"
+                placeholder="Search by name, e.g. Nutella"
+                placeholderTextColor={theme.textMuted}
+                style={[
+                  styles.nameInput,
+                  { flex: 1, backgroundColor: theme.card, color: theme.text, borderColor: theme.border },
+                ]}
+              />
+              <Pressable
+                onPress={runSearch}
+                disabled={searching || !query.trim()}
+                style={[styles.searchBtn, { backgroundColor: query.trim() ? theme.primary : theme.border }]}
+              >
+                <Text style={styles.searchBtnText}>{searching ? '…' : 'Search'}</Text>
+              </Pressable>
+            </View>
+            {searchError && (
+              <Text style={[styles.hint, { color: theme.textMuted }]}>{searchError}</Text>
+            )}
+            {results.map((p) => (
+              <Pressable
+                key={p.code}
+                onPress={() => pickProduct(p)}
+                style={[styles.resultRow, { backgroundColor: theme.card, borderColor: theme.border }]}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.resultName, { color: theme.text }]} numberOfLines={1}>
+                    {p.name}
+                  </Text>
+                  <Text style={[styles.resultSub, { color: theme.textMuted }]} numberOfLines={1}>
+                    {[p.brand, p.additiveTags.length ? `${p.additiveTags.length} additives` : null]
+                      .filter(Boolean)
+                      .join(' · ') || 'tap to analyze'}
+                  </Text>
+                </View>
+                {p.nutriScore && (
+                  <Badge text={p.nutriScore.toUpperCase()} color={nutriScoreColor(p.nutriScore)} />
+                )}
+                {p.novaGroup != null && (
+                  <Badge text={`N${p.novaGroup}`} color={novaColor(p.novaGroup)} />
+                )}
+              </Pressable>
+            ))}
+
+            <Text style={[styles.orLine, { color: theme.textMuted }]}>
+              — or scan / paste the label yourself —
             </Text>
 
             <View style={styles.captureRow}>
@@ -163,6 +281,29 @@ export function IngredientScanScreen() {
               </View>
             </View>
 
+            {nutrition && (nutrition.nutriScore || nutrition.nova != null) && (
+              <View style={[styles.nutriCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                <Text style={[styles.nutriLabel, { color: theme.textMuted }]}>
+                  NUTRITION · OPEN FOOD FACTS
+                </Text>
+                <View style={styles.nutriRow}>
+                  {nutrition.nutriScore && (
+                    <View style={styles.nutriItem}>
+                      <Badge text={`Nutri ${nutrition.nutriScore.toUpperCase()}`} color={nutriScoreColor(nutrition.nutriScore)} big />
+                    </View>
+                  )}
+                  {nutrition.nova != null && (
+                    <View style={styles.nutriItem}>
+                      <Badge text={`NOVA ${nutrition.nova}`} color={novaColor(nutrition.nova)} big />
+                      <Text style={[styles.nutriSub, { color: theme.textMuted }]}>
+                        {novaLabel(nutrition.nova)}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+            )}
+
             {result.petroleumCount > 0 && (
               <View style={[styles.petroBanner, { backgroundColor: theme.cardAlt, borderColor: theme.amber }]}>
                 <Text style={[styles.petroText, { color: theme.text }]}>
@@ -241,16 +382,7 @@ export function IngredientScanScreen() {
               </Text>
             )}
 
-            <Pressable
-              onPress={() => {
-                setResult(null);
-                setImageUri(null);
-                setRaw('');
-                setProductName('');
-                setSaved(false);
-              }}
-              style={styles.secondary}
-            >
+            <Pressable onPress={resetAll} style={styles.secondary}>
               <Text style={[styles.secondaryText, { color: theme.textMuted }]}>Scan another</Text>
             </Pressable>
           </>
@@ -273,8 +405,44 @@ function CaptureBtn({ label, icon, onPress }: { label: string; icon: string; onP
   );
 }
 
+function Badge({ text, color, big }: { text: string; color: string; big?: boolean }) {
+  return (
+    <View
+      style={[
+        styles.badge,
+        { backgroundColor: color, paddingHorizontal: big ? 12 : 8, paddingVertical: big ? 7 : 4 },
+      ]}
+    >
+      <Text style={[styles.badgeText, { fontSize: big ? 15 : 12 }]}>{text}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   intro: { fontSize: 14, lineHeight: 20, marginBottom: 16 },
+  searchRow: { flexDirection: 'row', gap: 8 },
+  searchBtn: { paddingHorizontal: 16, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  searchBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  resultRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 8,
+  },
+  resultName: { fontSize: 15, fontWeight: '700' },
+  resultSub: { fontSize: 12, marginTop: 2 },
+  orLine: { fontSize: 12, textAlign: 'center', marginTop: 18, marginBottom: 6 },
+  hint: { fontSize: 13, lineHeight: 18, marginTop: 8 },
+  badge: { borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  badgeText: { color: '#fff', fontWeight: '800' },
+  nutriCard: { borderWidth: 1, borderRadius: 14, padding: 14, marginBottom: 12 },
+  nutriLabel: { fontSize: 12, fontWeight: '800', letterSpacing: 0.5, marginBottom: 10 },
+  nutriRow: { flexDirection: 'row', gap: 20 },
+  nutriItem: { alignItems: 'flex-start', gap: 4 },
+  nutriSub: { fontSize: 12 },
   captureRow: { flexDirection: 'row', gap: 12, marginBottom: 14 },
   captureBtn: {
     flex: 1,

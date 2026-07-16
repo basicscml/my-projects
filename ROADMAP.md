@@ -106,12 +106,16 @@ These need nothing but the receipts we already parse. High value, low risk.
    - ✅ **Done (v1):** the **Ingredient scan** reads the ingredients list itself
      (your approach — works on any package, no barcode needed) and rates it from
      a curated, sourced additive dataset.
-   - **Next (external data):** enrich from **Open Food Facts** — a free, open
-     product database with ingredients, additives, allergens, Nutri-Score and
-     NOVA levels — to cover far more ingredients than the bundled list, and to
-     add the *nutrition* half of the score (Yuka is ~60% nutrition + 30%
-     additives + 10% organic). Barcode scan (#5) becomes an optional second way
-     in. (Yuka itself has no public API; Open Food Facts is the open equivalent.)
+   - ✅ **Done (v1 adapter):** **Open Food Facts** integration — the ingredient
+     scanner can now *search a product by name* (barcode lookup ready too) and
+     pull its ingredients, additives, **Nutri-Score**, and **NOVA** processing
+     level, then run the additive analysis on the real ingredients. This is the
+     first live "source adapter" from the ingestion strategy — `src/utils/
+     openFoodFacts.ts` normalizes OFF into one shape; more sources become more
+     adapters. Degrades gracefully offline. (Runs on the device's network; the
+     preview sandbox blocks external calls.)
+   - **Next:** barcode camera scan as a second way in; fold Nutri-Score + NOVA
+     into a single blended score; add CSPI/EWG as further adapters.
    - _Notes:_ unmatched ingredients degrade to "not in dataset", never "safe".
      Scoring stays transparent about its source — no black box.
 10. **Weekly circulars / deals.** Pull store weekly ads and match them to your
