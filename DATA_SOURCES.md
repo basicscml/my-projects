@@ -24,6 +24,32 @@ infer glyphosate from "enriched flour" — we'd have to look up the brand.
 
 ---
 
+## Handling "hundreds of websites" — the scaling strategy
+
+Don't integrate websites. Integrate the **few structured databases that already
+aggregated them**, and normalize everything into one internal schema.
+
+1. **One schema, many adapters.** The app reads a single `AdditiveInfo` /
+   product shape. Each trusted source gets *one adapter* mapping it into that
+   shape. Adding a source = one adapter, never re-plumbing the app. The scanner
+   never touches a live website.
+2. **Aggregators over primaries.** A handful of DBs already digested the science
+   (Open Food Facts, CSPI, EWG) — start there instead of scraping the long tail.
+3. **Trust tiers, always with provenance shown:**
+   1. Regulators (FDA, EFSA, WHO JECFA, EU) → authority
+   2. Science-based aggregators (Open Food Facts additives, CSPI, EWG) → strong
+   3. State/advocacy programs (Healthy Florida First) → context, labeled
+   4. Blogs / news → never authority; at most "also flagged by…"
+4. **On conflict, show the range + who said what** — never average into a fake
+   single number.
+5. **The long tail = context, not truth.** Other sites appear as citations on an
+   ingredient, never as the rating's source. (Optional: LLM-assisted extraction
+   can normalize an unstructured page into the schema — keeping the citation,
+   never fabricating a rating.)
+
+Net effect: "hundreds of websites" collapses to ~5 structured integrations plus
+an optional citation layer.
+
 ## Category 1 — Additive / ingredient safety ratings
 
 | Source | Coverage | Programmatic access | Notes |
