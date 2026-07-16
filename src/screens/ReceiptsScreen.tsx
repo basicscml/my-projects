@@ -7,7 +7,9 @@ import { useTheme } from '../theme';
 import { useShopping } from '../store/ShoppingContext';
 import { RootStackParamList } from '../navigation/types';
 import { spendByStore } from '../utils/suggestions';
+import { spendMirror } from '../utils/spend';
 import { money } from '../utils/money';
+import { dateKey } from '../utils/dates';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -23,6 +25,7 @@ export function ReceiptsScreen() {
     [receipts]
   );
   const maxStore = spend.length ? spend[0].total : 0;
+  const mirror = useMemo(() => spendMirror(receipts, dateKey()), [receipts]);
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
@@ -40,6 +43,48 @@ export function ReceiptsScreen() {
             </Pressable>
           </View>
         </View>
+
+        {/* This week vs usual — a mirror, not a cop */}
+        {receipts.length > 0 && (
+          <View style={[styles.mirror, { backgroundColor: theme.card, borderColor: theme.border }]}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.mirrorLabel, { color: theme.textMuted }]}>THIS WEEK</Text>
+              <Text style={[styles.mirrorAmount, { color: theme.text }]}>{money(mirror.thisWeek)}</Text>
+              {mirror.deltaPct != null ? (
+                <Text style={[styles.mirrorSub, { color: theme.textMuted }]}>
+                  usual is {money(mirror.weeklyAvg)}/week
+                </Text>
+              ) : (
+                <Text style={[styles.mirrorSub, { color: theme.textMuted }]}>
+                  building your weekly baseline…
+                </Text>
+              )}
+            </View>
+            {mirror.deltaPct != null && (
+              <View
+                style={[
+                  styles.deltaPill,
+                  {
+                    backgroundColor:
+                      mirror.deltaPct <= 0 ? theme.accent + '22' : theme.amber + '22',
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.deltaText,
+                    { color: mirror.deltaPct <= 0 ? theme.accent : theme.amber },
+                  ]}
+                >
+                  {mirror.deltaPct <= 0 ? '↓' : '↑'} {Math.abs(Math.round(mirror.deltaPct * 100))}%
+                </Text>
+                <Text style={[styles.deltaSub, { color: theme.textMuted }]}>
+                  vs usual
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Spend summary */}
         {receipts.length > 0 && (
@@ -153,6 +198,20 @@ const styles = StyleSheet.create({
   headerLinks: { flexDirection: 'row', gap: 16 },
   link: { fontWeight: '700', fontSize: 15 },
   title: { fontSize: 30, fontWeight: '800' },
+  mirror: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 18,
+    padding: 18,
+    marginBottom: 14,
+  },
+  mirrorLabel: { fontSize: 12, fontWeight: '800', letterSpacing: 0.5 },
+  mirrorAmount: { fontSize: 30, fontWeight: '800', marginTop: 4 },
+  mirrorSub: { fontSize: 13, marginTop: 3 },
+  deltaPill: { borderRadius: 14, paddingHorizontal: 16, paddingVertical: 10, alignItems: 'center' },
+  deltaText: { fontSize: 20, fontWeight: '800' },
+  deltaSub: { fontSize: 11, marginTop: 2 },
   summary: { borderWidth: 1, borderRadius: 18, padding: 18, marginBottom: 20 },
   summaryLabel: { fontSize: 12, fontWeight: '800', letterSpacing: 0.5 },
   summaryTotal: { fontSize: 34, fontWeight: '800', marginTop: 4 },

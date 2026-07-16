@@ -90,7 +90,7 @@ export function seedList(): ShoppingItem[] {
  * data to work with on first launch. `dateKey` is filled in by the caller so
  * the dates are recent (the seed can't call Date at import time cleanly).
  */
-export function seedReceipts(recentKey: string, olderKey: string): Receipt[] {
+export function seedReceipts(recentKey: string, olderKey: string, priorWeekKey: string): Receipt[] {
   return [
     {
       id: uid(),
@@ -134,6 +134,23 @@ export function seedReceipts(recentKey: string, olderKey: string): Receipt[] {
         { id: uid(), name: 'Oat Milk', price: 4.5, qty: 1, size: '32 fl oz' },
         { id: uid(), name: 'Eggs', price: 6.0, qty: 1, size: '12 ct' },
         { id: uid(), name: 'Chicken Breast', price: 7.2, qty: 1, size: '1 lb' },
+      ],
+    },
+    {
+      // Prior-week receipt so the spend mirror has a baseline to compare against.
+      id: uid(),
+      storeName: 'Grocery Market',
+      storeId: null,
+      dateKey: priorWeekKey,
+      total: 41.18,
+      source: 'parsed',
+      items: [
+        { id: uid(), name: 'Bananas', price: 1.29, qty: 1, size: '2 lb' },
+        { id: uid(), name: 'Oat Milk', price: 3.99, qty: 2, size: '64 fl oz' },
+        { id: uid(), name: 'Eggs', price: 4.49, qty: 1, size: '12 ct' },
+        { id: uid(), name: 'Chicken Breast', price: 8.6, qty: 1, size: '1 lb' },
+        { id: uid(), name: 'Coffee Beans', price: 9.99, qty: 1, size: '12 oz' },
+        { id: uid(), name: 'Olive Oil', price: 12.82, qty: 1, size: '16 fl oz' },
       ],
     },
   ];

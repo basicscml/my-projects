@@ -82,7 +82,9 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
         const today = new Date();
         const older = new Date(today);
         older.setDate(older.getDate() - 6);
-        const r = seedReceipts(dateKey(today), dateKey(older));
+        const priorWeek = new Date(today);
+        priorWeek.setDate(priorWeek.getDate() - 15);
+        const r = seedReceipts(dateKey(today), dateKey(older), dateKey(priorWeek));
         setStores(s);
         setList(l);
         setReceipts(r);
