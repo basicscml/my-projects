@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../theme';
@@ -28,6 +28,7 @@ import {
 } from '../utils/ingredientAnalyzer';
 import {
   searchProductsByName,
+  fetchProductByBarcode,
   ProductResult,
   NutriScore,
   nutriScoreColor,
@@ -43,6 +44,7 @@ export function IngredientScanScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
+  const route = useRoute<RouteProp<RootStackParamList, 'IngredientScan'>>();
 
   const { setProductHealth } = useShopping();
   const [raw, setRaw] = useState('');
@@ -114,6 +116,34 @@ export function IngredientScanScreen() {
     }
   };
 
+  const lookupByBarcode = async (barcode: string) => {
+    setQuery('');
+    setResults([]);
+    setSearching(true);
+    setSearchError(null);
+    try {
+      const p = await fetchProductByBarcode(barcode);
+      if (p) pickProduct(p);
+      else setSearchError(`No product found for barcode ${barcode}.`);
+    } catch {
+      setSearchError(
+        'Couldn’t reach Open Food Facts. This works on your phone’s network; the preview sandbox blocks external calls.'
+      );
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  // A barcode handed back from the scanner runs the lookup once.
+  useEffect(() => {
+    const code = route.params?.barcode;
+    if (code) {
+      lookupByBarcode(code);
+      navigation.setParams({ barcode: undefined });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [route.params?.barcode]);
+
   const resetAll = () => {
     setResult(null);
     setImageUri(null);
@@ -178,6 +208,14 @@ export function IngredientScanScreen() {
                 <Text style={styles.searchBtnText}>{searching ? '…' : 'Search'}</Text>
               </Pressable>
             </View>
+            <Pressable
+              onPress={() => navigation.navigate('BarcodeScan')}
+              style={[styles.barcodeBtn, { borderColor: theme.border }]}
+            >
+              <Text style={[styles.barcodeBtnText, { color: theme.primary }]}>
+                ▮▎▏ Scan a barcode instead
+              </Text>
+            </Pressable>
             {searchError && (
               <Text style={[styles.hint, { color: theme.textMuted }]}>{searchError}</Text>
             )}
@@ -434,6 +472,15 @@ const styles = StyleSheet.create({
   searchRow: { flexDirection: 'row', gap: 8 },
   searchBtn: { paddingHorizontal: 16, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   searchBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  barcodeBtn: {
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  barcodeBtnText: { fontWeight: '700', fontSize: 15 },
   resultRow: {
     flexDirection: 'row',
     alignItems: 'center',

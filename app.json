@@ -30,6 +30,12 @@
         {
           "color": "#5B4B8A"
         }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Homebase to use the camera to scan product barcodes."
+        }
       ]
     ]
   }

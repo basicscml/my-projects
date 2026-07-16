@@ -15,6 +15,7 @@ import { ReceiptDetailScreen } from '../screens/ReceiptDetailScreen';
 import { StoresScreen } from '../screens/StoresScreen';
 import { StoreEditorScreen } from '../screens/StoreEditorScreen';
 import { IngredientScanScreen } from '../screens/IngredientScanScreen';
+import { BarcodeScanScreen } from '../screens/BarcodeScanScreen';
 import { PantryScreen } from '../screens/PantryScreen';
 import { CompareScreen } from '../screens/CompareScreen';
 import { CompareDetailScreen } from '../screens/CompareDetailScreen';
@@ -98,6 +99,11 @@ export function RootNavigator() {
         name="IngredientScan"
         component={IngredientScanScreen}
         options={{ presentation: 'modal', title: 'Ingredient scan' }}
+      />
+      <Stack.Screen
+        name="BarcodeScan"
+        component={BarcodeScanScreen}
+        options={{ presentation: 'modal', title: 'Scan barcode' }}
       />
       <Stack.Screen name="Pantry" component={PantryScreen} options={{ title: 'Pantry' }} />
       <Stack.Screen name="Compare" component={CompareScreen} options={{ title: 'Compare' }} />

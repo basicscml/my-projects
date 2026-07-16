@@ -6,7 +6,8 @@ export type RootStackParamList = {
   ReceiptDetail: { receiptId: string };
   Stores: undefined;
   StoreEditor: { storeId?: string };
-  IngredientScan: undefined;
+  IngredientScan: { barcode?: string } | undefined;
+  BarcodeScan: undefined;
   Pantry: undefined;
   Compare: undefined;
   CompareDetail: { name: string };
