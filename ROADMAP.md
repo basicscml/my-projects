@@ -99,9 +99,12 @@ These need nothing but the receipts we already parse. High value, low risk.
 
 5. **Barcode scan for products.** Add camera barcode scanning (`expo-camera`).
    Scanning a product's barcode is the key that unlocks health data (Phase 4).
-6. **On-device receipt OCR.** Replace "paste the text" with real text
-   recognition on the photo (ML Kit). The parser and review screen already exist
-   — this just feeds them automatically.
+6. ✅ **On-device photo OCR (built).** The "Take/Pick photo" buttons on both the
+   receipt scanner and the ingredient scanner now run **ML Kit text recognition
+   on-device** (`src/utils/ocr.ts`, with a `.web.ts` shim), then feed the text
+   straight into the parser / analyzer — no typing. On-device, no network.
+   Requires a **custom dev/prod build** (not Expo Go / web preview); degrades
+   gracefully to paste/barcode elsewhere.
 7. **Calendar sync.** Write your predicted shop day / reminders to the phone
    calendar (`expo-calendar`), and read busy days to time nudges (#4).
 8. **True background geofencing.** Upgrade the foreground "check nearby" to real

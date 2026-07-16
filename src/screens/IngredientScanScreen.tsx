@@ -36,6 +36,7 @@ import {
   novaLabel,
 } from '../utils/openFoodFacts';
 import { blendHealth } from '../utils/healthScore';
+import { recognizeText } from '../utils/ocr';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 type Nutrition = { nova: number | null; nutriScore: NutriScore; brand: string | null };
@@ -52,6 +53,7 @@ export function IngredientScanScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [result, setResult] = useState<IngredientAnalysis | null>(null);
   const [saved, setSaved] = useState(false);
+  const [ocrBusy, setOcrBusy] = useState(false);
 
   // Open Food Facts lookup
   const [query, setQuery] = useState('');
@@ -75,7 +77,20 @@ export function IngredientScanScreen() {
     const res = fromCamera
       ? await ImagePicker.launchCameraAsync({ quality: 0.5 })
       : await ImagePicker.launchImageLibraryAsync({ quality: 0.5 });
-    if (!res.canceled && res.assets[0]) setImageUri(res.assets[0].uri);
+    if (res.canceled || !res.assets[0]) return;
+    const uri = res.assets[0].uri;
+    setImageUri(uri);
+    setSearchError(null);
+    // Read the label with on-device OCR, then analyze it automatically.
+    setOcrBusy(true);
+    const out = await recognizeText(uri);
+    setOcrBusy(false);
+    if ('text' in out) {
+      setRaw(out.text);
+      analyze(out.text);
+    } else {
+      setSearchError(out.error);
+    }
   };
 
   const analyze = (text: string) => {
@@ -254,6 +269,11 @@ export function IngredientScanScreen() {
             </View>
             {imageUri && (
               <Image source={{ uri: imageUri }} style={styles.preview} resizeMode="cover" />
+            )}
+            {ocrBusy && (
+              <Text style={[styles.hint, { color: theme.primary }]}>
+                📖 Reading the label…
+              </Text>
             )}
 
             <Text style={[styles.label, { color: theme.textMuted }]}>PRODUCT NAME (OPTIONAL)</Text>

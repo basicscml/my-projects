@@ -21,6 +21,7 @@ import { RootStackParamList } from '../navigation/types';
 import { Receipt, ReceiptItem } from '../types';
 import { parseReceipt } from '../utils/receiptParser';
 import { SAMPLE_RECEIPT_TEXT } from '../store/seed';
+import { recognizeText } from '../utils/ocr';
 import { uid } from '../utils/id';
 import { dateKey } from '../utils/dates';
 import { money, parsePrice } from '../utils/money';
@@ -43,6 +44,7 @@ export function ScanReceiptScreen() {
   const [date, setDate] = useState(dateKey());
   const [items, setItems] = useState<ReceiptItem[]>([]);
   const [total, setTotal] = useState('');
+  const [ocrBusy, setOcrBusy] = useState(false);
 
   useLayoutEffect(() => {
     navigation.setOptions({ title: step === 'capture' ? 'Scan receipt' : 'Review' });
@@ -67,8 +69,18 @@ export function ScanReceiptScreen() {
     const result = fromCamera
       ? await ImagePicker.launchCameraAsync({ quality: 0.5 })
       : await ImagePicker.launchImageLibraryAsync({ quality: 0.5 });
-    if (!result.canceled && result.assets[0]) {
-      setImageUri(result.assets[0].uri);
+    if (result.canceled || !result.assets[0]) return;
+    const uri = result.assets[0].uri;
+    setImageUri(uri);
+    // Read the receipt with on-device OCR, then jump into the parsed review.
+    setOcrBusy(true);
+    const out = await recognizeText(uri);
+    setOcrBusy(false);
+    if ('text' in out) {
+      setRawText(out.text);
+      runParse(out.text);
+    } else {
+      Alert.alert('Couldn’t read the photo', out.error);
     }
   };
 
@@ -162,12 +174,14 @@ export function ScanReceiptScreen() {
               resizeMode="cover"
             />
           )}
+          {ocrBusy && (
+            <Text style={[styles.hint, { color: theme.primary }]}>📖 Reading the receipt…</Text>
+          )}
 
           <Label>RECEIPT TEXT</Label>
           <Text style={[styles.hint, { color: theme.textMuted }]}>
-            Paste the receipt text (or type it) and we’ll pull out the items,
-            store, date, and total. On-device reading of the photo drops in
-            here next.
+            Snap a photo and we read it on-device, or paste the text yourself —
+            either way we pull out the items, store, date, and total.
           </Text>
           <TextInput
             value={rawText}
