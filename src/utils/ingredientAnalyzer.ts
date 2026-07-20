@@ -46,6 +46,13 @@ export function splitIngredients(raw: string): string[] {
 
 function lookup(token: string): AdditiveInfo | null {
   const lower = token.toLowerCase();
+  // Normalize colorant variants so "Red 40 Lake" / "FD&C Red 40" resolve to the
+  // base dye. ("Lake" is just the insoluble pigment form of the same dye.)
+  const norm = lower
+    .replace(/fd\s*&\s*c\s*/g, '')
+    .replace(/\blakes?\b/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
 
   // 1) E-number match anywhere in the token.
   const codes: string[] = [];
@@ -59,10 +66,11 @@ function lookup(token: string): AdditiveInfo | null {
     if (hit) return hit;
   }
 
-  // 2) Name / synonym substring match.
+  // 2) Name / synonym substring match (on the normalized text, then raw).
   for (const a of ADDITIVES) {
-    if (a.synonyms.some((syn) => lower.includes(syn))) return a;
-    if (lower.includes(a.name.toLowerCase())) return a;
+    if (a.synonyms.some((syn) => norm.includes(syn) || lower.includes(syn))) return a;
+    const name = a.name.toLowerCase();
+    if (norm.includes(name) || lower.includes(name)) return a;
   }
   return null;
 }
