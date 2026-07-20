@@ -19,7 +19,9 @@ import {
   WEEKDAYS_LONG,
   formatTime,
   todayWeekday,
+  dateKey,
 } from '../utils/dates';
+import { shoppingRhythm } from '../utils/shoppingDays';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -28,7 +30,8 @@ export function TodayScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
   const { ready, routinesForDay, completedSteps } = useRoutines();
-  const { activeCount, checkNearby } = useShopping();
+  const { activeCount, checkNearby, receipts } = useShopping();
+  const rhythm = useMemo(() => shoppingRhythm(receipts, dateKey()), [receipts]);
 
   const weekday = todayWeekday();
   const today = routinesForDay(weekday).sort((a, b) =>
@@ -129,6 +132,27 @@ export function TodayScreen() {
           </Text>
         </Pressable>
       </View>
+
+      {/* Learned shopping rhythm */}
+      {rhythm.cadenceDays != null && (
+        <Pressable
+          onPress={() => navigation.navigate('Tabs', { screen: 'List' } as never)}
+          style={[
+            styles.rhythmCard,
+            {
+              backgroundColor: rhythm.dueSoon ? theme.primarySoft : 'transparent',
+              borderColor: rhythm.dueSoon ? theme.primary : theme.border,
+            },
+          ]}
+        >
+          <Text style={{ fontSize: 15 }}>🗓️</Text>
+          <Text style={[styles.rhythmText, { color: rhythm.dueSoon ? theme.text : theme.textMuted }]}>
+            {rhythm.dueSoon
+              ? `Shopping day soon — you usually shop ${rhythm.usualWeekdayName}s, ~every ${rhythm.cadenceDays}d. Prep your list?`
+              : `You usually shop ${rhythm.usualWeekdayName}s · ~every ${rhythm.cadenceDays} days`}
+          </Text>
+        </Pressable>
+      )}
 
       {/* Routines */}
       {totalCount > 0 || (ready && today.length > 0) ? (
@@ -246,6 +270,17 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     marginBottom: 12,
   },
+  rhythmCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: 12,
+    marginTop: -8,
+    marginBottom: 20,
+  },
+  rhythmText: { flex: 1, fontSize: 13, fontWeight: '600', lineHeight: 18 },
   card: {
     flexDirection: 'row',
     alignItems: 'center',

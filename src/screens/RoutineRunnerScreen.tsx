@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useMemo, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,12 @@ import { ProgressRing } from '../components/ProgressRing';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 type Rt = RouteProp<RootStackParamList, 'RoutineRunner'>;
+
+function formatClock(total: number): string {
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
 
 export function RoutineRunnerScreen() {
   const theme = useTheme();
@@ -36,6 +42,14 @@ export function RoutineRunnerScreen() {
     () => new Set(routine ? completedSteps(routine.id) : []),
     [routine, completedSteps]
   );
+
+  // "Just 2 minutes" starter timer — the hardest part of a task is starting.
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
+  useEffect(() => {
+    if (secondsLeft == null || secondsLeft <= 0) return;
+    const id = setTimeout(() => setSecondsLeft((s) => (s != null ? s - 1 : null)), 1000);
+    return () => clearTimeout(id);
+  }, [secondsLeft]);
 
   if (!routine) {
     return (
@@ -95,13 +109,48 @@ export function RoutineRunnerScreen() {
               {current.text}
             </Text>
             <Pressable
-              onPress={() => toggleStep(routine.id, current.id)}
+              onPress={() => {
+                toggleStep(routine.id, current.id);
+                setSecondsLeft(null);
+              }}
               style={[styles.doneBtn, { backgroundColor: routine.color }]}
               accessibilityRole="button"
               accessibilityLabel={`Mark done: ${current.text}`}
             >
               <Text style={styles.doneBtnText}>Mark done ✓</Text>
             </Pressable>
+
+            {secondsLeft == null ? (
+              <Pressable onPress={() => setSecondsLeft(120)} style={styles.twoMin}>
+                <Text style={[styles.twoMinText, { color: routine.color }]}>
+                  ⏱ Just 2 minutes
+                </Text>
+              </Pressable>
+            ) : secondsLeft > 0 ? (
+              <View style={styles.twoMinRun}>
+                <Text style={[styles.twoMinTimer, { color: routine.color }]}>
+                  {formatClock(secondsLeft)}
+                </Text>
+                <Text style={[styles.twoMinHint, { color: theme.textMuted }]}>
+                  Just start — you can stop when it hits zero.
+                </Text>
+                <Pressable onPress={() => setSecondsLeft(null)} hitSlop={8}>
+                  <Text style={[styles.twoMinStop, { color: theme.textMuted }]}>Stop</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <View style={styles.twoMinRun}>
+                <Text style={[styles.twoMinTimer, { color: theme.accent }]}>
+                  ✓ 2 minutes in
+                </Text>
+                <Text style={[styles.twoMinHint, { color: theme.textMuted }]}>
+                  Nice — keep going, or mark it done.
+                </Text>
+                <Pressable onPress={() => setSecondsLeft(null)} hitSlop={8}>
+                  <Text style={[styles.twoMinStop, { color: theme.primary }]}>Reset timer</Text>
+                </Pressable>
+              </View>
+            )}
           </View>
         )
       )}
@@ -200,6 +249,12 @@ const styles = StyleSheet.create({
   },
   doneBtn: { paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
   doneBtnText: { color: '#fff', fontWeight: '800', fontSize: 17 },
+  twoMin: { marginTop: 12, paddingVertical: 10, alignItems: 'center' },
+  twoMinText: { fontWeight: '700', fontSize: 15 },
+  twoMinRun: { marginTop: 14, alignItems: 'center', gap: 4 },
+  twoMinTimer: { fontSize: 34, fontWeight: '800' },
+  twoMinHint: { fontSize: 13, textAlign: 'center' },
+  twoMinStop: { fontSize: 13, fontWeight: '700', marginTop: 6 },
   card: {
     borderWidth: 2,
     borderRadius: 20,
