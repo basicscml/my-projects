@@ -23,6 +23,8 @@ export type AdditiveInfo = {
   risk: IngredientRisk;
   note: string;
   source: string;
+  /** How it affects the body — concrete, documented effects (organs, mechanisms). */
+  effects?: string;
   /** Derived from petroleum / crude-oil feedstock (same source as fuels). */
   petroleum?: boolean;
 };
@@ -36,6 +38,7 @@ export const ADDITIVES: AdditiveInfo[] = [
     category: 'Colorant',
     risk: 'moderate',
     note: 'Petroleum-derived azo dye (formerly coal-tar); linked to hyperactivity in some children. EU requires a warning label; FDA is phasing petroleum dyes out by end of 2027.',
+    effects: 'Can worsen hyperactivity/attention in sensitive children; triggers hives or asthma-like reactions in a small number of people. Purely cosmetic — adds no nutrition.',
     source: 'EFSA / UK Southampton study (2007); FDA',
     petroleum: true,
   },
@@ -82,6 +85,7 @@ export const ADDITIVES: AdditiveInfo[] = [
     category: 'Colorant',
     risk: 'moderate',
     note: 'Petroleum-derived azo dye (formerly coal-tar); hyperactivity concerns; EU warning label required; FDA phasing out by end of 2027.',
+    effects: 'The most-used US dye. Linked to worsened hyperactivity/attention in some children and allergic-type reactions in a few people; cosmetic only.',
     source: 'EFSA / Southampton study; FDA',
     petroleum: true,
   },
@@ -103,6 +107,7 @@ export const ADDITIVES: AdditiveInfo[] = [
     category: 'Colorant',
     risk: 'high',
     note: 'EFSA (2021) concluded it can no longer be considered safe as a food additive; banned in the EU.',
+    effects: 'Nanoparticles may build up in the body; EFSA could not rule out genotoxicity (DNA damage), and studies suggest gut-lining irritation and inflammation.',
     source: 'EFSA (2021), EU ban (2022)',
   },
 
@@ -114,6 +119,7 @@ export const ADDITIVES: AdditiveInfo[] = [
     category: 'Preservative',
     risk: 'moderate',
     note: 'Can form trace benzene with vitamin C; also part of hyperactivity study mixtures.',
+    effects: 'With vitamin C (ascorbic acid) it can form benzene, a known carcinogen; also tied to worsened hyperactivity/attention in sensitive children.',
     source: 'EFSA / Southampton study',
   },
   {
@@ -123,6 +129,7 @@ export const ADDITIVES: AdditiveInfo[] = [
     category: 'Preservative',
     risk: 'moderate',
     note: 'Common allergen; can trigger asthma/sensitivity reactions. Must be declared.',
+    effects: 'Can trigger asthma attacks, wheezing, hives, or flushing in sulphite-sensitive people (especially some asthmatics); destroys some vitamin B1.',
     source: 'EFSA; EU allergen labelling',
   },
   {
@@ -132,6 +139,7 @@ export const ADDITIVES: AdditiveInfo[] = [
     category: 'Preservative',
     risk: 'high',
     note: 'Used in cured meats; can form nitrosamines. Processed meat is IARC Group 1 (carcinogenic to humans).',
+    effects: 'Under heat/stomach acid can form nitrosamines that damage DNA; regular processed-meat intake raises colorectal (bowel) cancer risk.',
     source: 'IARC (2015); EFSA',
   },
   {
@@ -161,6 +169,7 @@ export const ADDITIVES: AdditiveInfo[] = [
     category: 'Antioxidant',
     risk: 'high',
     note: 'Petroleum-derived antioxidant. IARC classifies BHA as possibly carcinogenic to humans (Group 2B).',
+    effects: 'Caused stomach/forestomach tumours in animal studies; acts as an endocrine (hormone) disruptor. Concern is with long-term, repeated exposure.',
     source: 'IARC (Group 2B)',
     petroleum: true,
   },
@@ -171,6 +180,7 @@ export const ADDITIVES: AdditiveInfo[] = [
     category: 'Antioxidant',
     risk: 'moderate',
     note: 'Petroleum-derived synthetic antioxidant; mixed evidence, some safety questions.',
+    effects: 'High doses affected the liver, kidneys, and thyroid in animal studies and showed hormone-disrupting activity; human evidence is limited.',
     source: 'EFSA additive review',
     petroleum: true,
   },
@@ -180,7 +190,8 @@ export const ADDITIVES: AdditiveInfo[] = [
     synonyms: ['tert-butylhydroquinone', 'tbhq', 'tertiary butylhydroquinone'],
     category: 'Antioxidant',
     risk: 'moderate',
-    note: 'Petroleum-derived antioxidant in fried/frozen/high-fat foods. High doses show liver/kidney effects in studies; ADI limits intake.',
+    note: 'Petroleum-derived antioxidant in fried/frozen/high-fat foods (chips, crackers).',
+    effects: 'High doses enlarged the liver and affected the kidneys in animals; research links it to weakened immune response and, in lab studies, effects on nerve cells.',
     source: 'EFSA / FDA; toxicology reviews',
     petroleum: true,
   },
@@ -203,6 +214,7 @@ export const ADDITIVES: AdditiveInfo[] = [
     category: 'Sweetener',
     risk: 'moderate',
     note: 'IARC (2023) classified as possibly carcinogenic (Group 2B); JECFA kept the existing acceptable daily intake.',
+    effects: 'Possible cancer link is under debate; some people get headaches. People with the genetic condition PKU must avoid it entirely (it contains phenylalanine).',
     source: 'IARC / JECFA (2023)',
   },
   {
@@ -241,6 +253,7 @@ export const ADDITIVES: AdditiveInfo[] = [
     category: 'Flavour enhancer',
     risk: 'limited',
     note: 'Generally recognized as safe; a minority report sensitivity symptoms.',
+    effects: 'Most people are unaffected. Some report short-lived headache, flushing, or sweating ("MSG symptom complex") after large amounts; not consistently reproduced in trials.',
     source: 'FDA / EFSA',
   },
   {
@@ -250,6 +263,7 @@ export const ADDITIVES: AdditiveInfo[] = [
     category: 'Thickener',
     risk: 'moderate',
     note: 'Debated; some studies suggest digestive inflammation, especially degraded forms.',
+    effects: 'Lab and animal studies link it to gut-lining inflammation and irritation; some people with IBS/colitis report flare-ups. Human evidence is still debated.',
     source: 'EFSA (2018) re-evaluation',
   },
 
@@ -257,10 +271,11 @@ export const ADDITIVES: AdditiveInfo[] = [
   {
     codes: [],
     name: 'Partially Hydrogenated Oil (trans fat)',
-    synonyms: ['partially hydrogenated', 'hydrogenated oil', 'trans fat'],
+    synonyms: ['partially hydrogenated', 'hydrogenated oil', 'hydrogenated', 'trans fat'],
     category: 'Fat',
     risk: 'high',
-    note: 'Industrial trans fat raises cardiovascular risk; WHO urges elimination.',
+    note: 'Industrial trans fat. The single most harmful common ingredient — WHO wants it eliminated from the food supply.',
+    effects: 'Raises LDL ("bad") cholesterol and lowers HDL ("good"), drives artery-clogging plaque and chronic inflammation, and raises heart-attack, stroke, and type-2 diabetes risk. No safe level.',
     source: 'WHO; FDA (removed GRAS status)',
   },
   {
@@ -270,6 +285,7 @@ export const ADDITIVES: AdditiveInfo[] = [
     category: 'Added sugar',
     risk: 'moderate',
     note: 'Added sugar; high intake linked to metabolic risk.',
+    effects: 'Excess added sugar drives weight gain, fatty liver, insulin resistance and type-2 diabetes, and raises triglycerides — all fueling chronic inflammation.',
     source: 'Dietary guidance (WHO/FDA)',
   },
   {
@@ -377,6 +393,7 @@ export const ADDITIVES: AdditiveInfo[] = [
     category: 'Acidity regulator',
     risk: 'limited',
     note: 'Common acidulant (e.g. colas); very high intake linked to lower bone density.',
+    effects: 'Heavy cola intake is associated with lower bone mineral density and, in some studies, kidney stones/reduced kidney function — mostly a concern at high, daily amounts.',
     source: 'EFSA additive review',
   },
   {

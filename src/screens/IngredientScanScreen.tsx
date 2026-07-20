@@ -413,6 +413,13 @@ export function IngredientScanScreen() {
                         <Text style={[styles.ingNote, { color: theme.textMuted }]}>
                           {info.note}
                         </Text>
+                        {info.effects && (
+                          <View style={[styles.effectsBox, { backgroundColor: theme.cardAlt }]}>
+                            <Text style={[styles.effectsText, { color: theme.text }]}>
+                              🩺 On the body: {info.effects}
+                            </Text>
+                          </View>
+                        )}
                         <Text style={[styles.ingSource, { color: theme.textMuted }]}>
                           Source: {info.source}
                         </Text>
@@ -579,5 +586,7 @@ const styles = StyleSheet.create({
   ingName: { fontSize: 16, fontWeight: '700' },
   ingMeta: { fontSize: 13, fontWeight: '700', marginTop: 2 },
   ingNote: { fontSize: 13, lineHeight: 18, marginTop: 4 },
-  ingSource: { fontSize: 11, marginTop: 4, fontStyle: 'italic' },
+  effectsBox: { borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8, marginTop: 8 },
+  effectsText: { fontSize: 13, lineHeight: 19, fontWeight: '600' },
+  ingSource: { fontSize: 11, marginTop: 6, fontStyle: 'italic' },
 });
